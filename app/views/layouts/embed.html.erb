@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full">
+  <head>
+    <title>Board (live mirror)</title>
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <%= csrf_meta_tags %>
+    <%= csp_meta_tag %>
+
+    <%# Same morphing + view-transition defaults so the iframe re-settles %>
+    <%# exactly like the main window when a card moves anywhere. %>
+    <meta name="turbo-refresh-method" content="morph">
+    <meta name="turbo-refresh-scroll" content="preserve">
+    <meta name="view-transition" content="same-origin">
+
+    <link rel="icon" href="/icon.svg" type="image/svg+xml">
+    <%= stylesheet_link_tag :tailwind, "data-turbo-track": "reload" %>
+    <%= javascript_importmap_tags %>
+  </head>
+
+  <body class="h-full bg-slate-950 text-slate-100 antialiased">
+    <main><%= yield %></main>
+  </body>
+</html>

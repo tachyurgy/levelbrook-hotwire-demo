@@ -1,0 +1,128 @@
+# Name of your application. Used to uniquely configure containers.
+service: levelbrook_hotwire_demo
+
+# Name of the container image. Pushed to the box-local registry at localhost:5000
+# (no external registry: the gh token lacks write:packages, so we self-host).
+image: levelbrook_hotwire_demo
+
+# Deploy to these servers. Single Hetzner box runs web + jobs (Solid Queue in
+# Puma) + Solid Cable + Solid Cache + SQLite — no external services.
+servers:
+  web:
+    - 5.78.108.109
+  # job:
+  #   hosts:
+  #     - 5.78.108.109
+  #   cmd: bin/jobs
+
+# Enable SSL auto certification via Let's Encrypt and allow for multiple apps on a single web server.
+# If used with Cloudflare, set encryption mode in SSL/TLS setting to "Full" to enable CF-to-app encryption.
+#
+# Using an SSL proxy like this requires turning on config.assume_ssl and config.force_ssl in production.rb!
+#
+# Don't use this when deploying to multiple web servers (then you have to terminate SSL at your load balancer).
+#
+# Auto SSL via Let's Encrypt through Kamal's built-in proxy (kamal-proxy).
+# DNS A record demo.levelbrook.com -> 5.78.108.109 is being added separately;
+# kamal-proxy will auto-issue the TLS cert once that name resolves. Until then
+# the proxy serves HTTP and answers TLS-SNI requests it can't yet certify.
+proxy:
+  ssl: true
+  host: demo.levelbrook.com
+
+# Where you keep your container images.
+# TODO: fill in registry server + username, and put the token in .kamal/secrets
+# as KAMAL_REGISTRY_PASSWORD. ghcr.io example shown.
+registry:
+  # Box-local registry (registry:2 container on 127.0.0.1:5000). Builder and
+  # server are the same Hetzner box, so localhost resolves for both push & pull.
+  server: localhost:5000
+  username: kamal
+  password:
+    - KAMAL_REGISTRY_PASSWORD           # set in .kamal/secrets from ENV
+
+# Inject ENV variables into containers (secrets come from .kamal/secrets).
+env:
+  secret:
+    - RAILS_MASTER_KEY
+  clear:
+    # Run the Solid Queue Supervisor inside the web server's Puma process to do jobs.
+    # When you start using multiple servers, you should split out job processing to a dedicated machine.
+    SOLID_QUEUE_IN_PUMA: true
+
+    # Set number of processes dedicated to Solid Queue (default: 1)
+    # JOB_CONCURRENCY: 3
+
+    # Set number of cores available to the application on each server (default: 1).
+    # WEB_CONCURRENCY: 2
+
+    # Match this to any external database server to configure Active Record correctly
+    # Use levelbrook_hotwire_demo-db for a db accessory server on same machine via local kamal docker network.
+    # DB_HOST: 192.168.0.2
+
+    # Log everything from Rails
+    # RAILS_LOG_LEVEL: debug
+
+# Aliases are triggered with "bin/kamal <alias>". You can overwrite arguments on invocation:
+# "bin/kamal logs -r job" will tail logs from the first server in the job section.
+aliases:
+  console: app exec --interactive --reuse "bin/rails console"
+  shell: app exec --interactive --reuse "bash"
+  logs: app logs -f
+  dbc: app exec --interactive --reuse "bin/rails dbconsole --include-password"
+
+# Use a persistent storage volume for sqlite database files and local Active Storage files.
+# Recommended to change this to a mounted volume path that is backed up off server.
+volumes:
+  - "levelbrook_hotwire_demo_storage:/rails/storage"
+
+# Bridge fingerprinted assets, like JS and CSS, between versions to avoid
+# hitting 404 on in-flight requests. Combines all files from new and old
+# version inside the asset_path.
+asset_path: /rails/public/assets
+
+# Configure the image builder.
+# Built on the box itself (native amd64, no QEMU emulation) via an SSH docker
+# context, because there is no working local Docker daemon on this Mac.
+builder:
+  arch: amd64
+  remote: ssh://root@5.78.108.109
+  local: false
+
+  # # Build image via remote server (useful for faster amd64 builds on arm64 computers)
+  # remote: ssh://docker@docker-builder-server
+  #
+  # # Pass arguments and secrets to the Docker build process
+  # args:
+  #   RUBY_VERSION: 3.3.7
+  # secrets:
+  #   - GITHUB_TOKEN
+  #   - RAILS_MASTER_KEY
+
+# Use a different ssh user than root
+# ssh:
+#   user: app
+
+# Use accessory services (secrets come from .kamal/secrets).
+# accessories:
+#   db:
+#     image: mysql:8.0
+#     host: 192.168.0.2
+#     # Change to 3306 to expose port to the world instead of just local network.
+#     port: "127.0.0.1:3306:3306"
+#     env:
+#       clear:
+#         MYSQL_ROOT_HOST: '%'
+#       secret:
+#         - MYSQL_ROOT_PASSWORD
+#     files:
+#       - config/mysql/production.cnf:/etc/mysql/my.cnf
+#       - db/production.sql:/docker-entrypoint-initdb.d/setup.sql
+#     directories:
+#       - data:/var/lib/mysql
+#   redis:
+#     image: valkey/valkey:8
+#     host: 192.168.0.2
+#     port: 6379
+#     directories:
+#       - data:/data

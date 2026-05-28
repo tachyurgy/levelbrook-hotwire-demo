@@ -1,0 +1,85 @@
+<% content_for :title, "Levelbrook Hotwire Demos — Real-time Rails without a JS framework" %>
+
+<section class="relative overflow-hidden">
+  <div class="pointer-events-none absolute inset-0 -z-10 bg-[radial-gradient(900px_400px_at_70%_-10%,rgba(249,115,22,0.18),transparent_60%)]"></div>
+
+  <div class="mx-auto max-w-6xl px-5 pt-20 pb-12">
+    <p class="text-xs font-semibold uppercase tracking-[0.2em] text-orange-400">Levelbrook Consulting · Senior Rails &amp; Hotwire</p>
+    <h1 class="mt-4 max-w-3xl text-4xl font-bold leading-tight tracking-tight text-white sm:text-5xl">
+      Two live demos of what Hotwire does that people assume only React can.
+    </h1>
+    <p class="mt-5 max-w-2xl text-lg leading-relaxed text-slate-300">
+      One Rails 8 app. No build step, no Node, almost no hand-written JavaScript — just
+      HTML morphed over the wire. The multiplayer Kanban proves gritty real-time correctness;
+      the branching story proves the polish. Open either in two tabs and watch them stay in sync.
+    </p>
+
+    <div class="mt-7 flex flex-wrap gap-2 text-xs text-slate-400">
+      <% %w[Rails\ 8 Turbo\ 8\ morphing Stimulus Solid\ Cable Solid\ Queue View\ Transitions importmap\ (no\ Node) Tailwind\ v4 SQLite].each do |chip| %>
+        <span class="rounded-full border border-white/10 bg-white/5 px-3 py-1"><%= chip %></span>
+      <% end %>
+    </div>
+  </div>
+</section>
+
+<section class="mx-auto max-w-6xl px-5 pb-24">
+  <div class="grid gap-6 lg:grid-cols-2">
+
+    <%# --- Card 1: Kanban --- %>
+    <article class="group relative flex flex-col overflow-hidden rounded-2xl border border-white/10 bg-slate-900/60 p-7">
+      <div class="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-sky-500 to-violet-500"></div>
+      <p class="text-xs font-semibold uppercase tracking-[0.15em] text-sky-400">Multiplayer · no framework</p>
+      <h2 class="mt-2 text-2xl font-bold text-white">Collaborative Kanban</h2>
+      <p class="mt-3 text-slate-300">
+        A shared board with draggable cards. Move a card and every connected browser
+        re-settles to match — the exact pattern 37signals ships in Fizzy. A second pane
+        of the same board sits right beside it so you see the real-time morph in one window.
+      </p>
+      <ul class="mt-5 space-y-2 text-sm text-slate-400">
+        <li class="flex gap-2"><span class="text-sky-400">→</span> <code class="text-slate-300">broadcasts_refreshes</code> + Turbo&nbsp;8 idiomorph — zero custom broadcast code</li>
+        <li class="flex gap-2"><span class="text-sky-400">→</span> HTML5 drag-and-drop Stimulus controller (no SortableJS)</li>
+        <li class="flex gap-2"><span class="text-sky-400">→</span> Action Cable presence: "N&nbsp;viewing" updates live</li>
+        <li class="flex gap-2"><span class="text-sky-400">→</span> Server renumbers positions in a transaction</li>
+      </ul>
+      <%= link_to board_path, class: "mt-7 inline-flex w-fit items-center gap-2 rounded-lg bg-sky-500 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-sky-400" do %>
+        Open the board
+        <span aria-hidden="true">→</span>
+      <% end %>
+    </article>
+
+    <%# --- Card 2: Story --- %>
+    <article class="group relative flex flex-col overflow-hidden rounded-2xl border border-white/10 bg-slate-900/60 p-7">
+      <div class="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-orange-500 to-rose-500"></div>
+      <p class="text-xs font-semibold uppercase tracking-[0.15em] text-orange-400">Cinematic · progressively enhanced</p>
+      <h2 class="mt-2 text-2xl font-bold text-white">Choose-Your-Path Story Engine</h2>
+      <p class="mt-3 text-slate-300">
+        A branching interactive narrative. Each choice is a Turbo navigation animated by a
+        View Transition; an ambient-audio bar marked <code class="text-slate-300">data-turbo-permanent</code>
+        never reloads between scenes; and a live tally shows what other readers chose.
+      </p>
+      <ul class="mt-5 space-y-2 text-sm text-slate-400">
+        <li class="flex gap-2"><span class="text-orange-400">→</span> Morph navigation + View Transitions API, gracefully degraded</li>
+        <li class="flex gap-2"><span class="text-orange-400">→</span> Permanent ambient-audio bar persists across every scene</li>
+        <li class="flex gap-2"><span class="text-orange-400">→</span> Live "X% of readers chose this" via Turbo Stream broadcast</li>
+        <li class="flex gap-2"><span class="text-orange-400">→</span> Fully playable with JavaScript disabled (plain links + forms)</li>
+      </ul>
+      <%= link_to story_path(Story.first), class: "mt-7 inline-flex w-fit items-center gap-2 rounded-lg bg-orange-500 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-orange-400" do %>
+        Read the story
+        <span aria-hidden="true">→</span>
+      <% end %>
+    </article>
+  </div>
+
+  <div class="mt-10 rounded-2xl border border-white/10 bg-slate-900/40 p-7 text-sm leading-relaxed text-slate-400">
+    <p class="font-semibold text-slate-200">Why these two?</p>
+    <p class="mt-2 max-w-3xl">
+      They cover the two things Hotwire skeptics assume it can't do — gritty multiplayer
+      correctness and design polish — while sharing one stack: a single Rails app, one
+      Solid Cable setup, one deploy. Everything is server-rendered HTML, progressively
+      enhanced: it works without JavaScript and gets faster with it on.
+    </p>
+    <p class="mt-4 text-slate-500">
+      Built by Levelbrook Consulting · <a class="text-slate-300 underline decoration-slate-600 underline-offset-2 hover:text-white" href="mailto:levelbrookteam@gmail.com">levelbrookteam@gmail.com</a>
+    </p>
+  </div>
+</section>

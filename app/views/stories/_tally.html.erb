@@ -1,0 +1,30 @@
+<%#
+  Live "X% of readers chose this" tally. Wrapped in a dom_id'd container that
+  Choice#record_pick! replaces via broadcast_replace_later_to — so when any
+  reader anywhere makes a choice on this scene, these bars animate to the new
+  share without anyone navigating off the page.
+%>
+<div id="scene_<%= scene.id %>_tally" class="mt-8 border-t border-white/5 pt-6">
+  <% total = scene.choices.sum(:picks_count) %>
+  <p class="mb-3 text-xs font-medium uppercase tracking-wide text-slate-500">
+    <% if total.zero? %>
+      Be the first to choose
+    <% else %>
+      What <%= pluralize(total, "reader") %> chose
+    <% end %>
+  </p>
+  <div class="space-y-2.5">
+    <% scene.choices.each do |choice| %>
+      <div>
+        <div class="mb-1 flex items-center justify-between text-xs text-slate-400">
+          <span class="truncate pr-3"><%= choice.label %></span>
+          <span class="shrink-0 tabular-nums font-medium text-slate-300"><%= choice.share %>%</span>
+        </div>
+        <div class="h-1.5 overflow-hidden rounded-full bg-white/5">
+          <div class="h-full rounded-full bg-gradient-to-r from-orange-500 to-rose-500 transition-[width] duration-700 ease-out"
+               style="width: <%= choice.share %>%"></div>
+        </div>
+      </div>
+    <% end %>
+  </div>
+</div>

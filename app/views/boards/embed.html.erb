@@ -1,0 +1,8 @@
+<%# Chromeless board for the side-by-side iframe. Subscribes to the same %>
+<%# refresh stream as the main page, so it morphs identically. Read-only-ish: %>
+<%# you CAN drag here too, which makes the bidirectional realtime obvious. %>
+<%= turbo_stream_from @board %>
+
+<div class="p-4">
+  <%= render "boards/board", board: @board, interactive: true %>
+</div>

@@ -1,0 +1,28 @@
+<section id="<%= dom_id(column) %>"
+         class="flex flex-col rounded-xl bg-slate-950/40 p-3 ring-1 <%= column_accent(column, :ring) %>"
+         data-drag-and-drop-target="container"
+         data-drop-url="<%= move_card_path("__id__") %>"
+         data-column-id="<%= column.id %>">
+  <header class="mb-3 flex items-center justify-between px-1">
+    <div class="flex items-center gap-2">
+      <span class="h-2 w-2 rounded-full <%= column_accent(column, :dot) %>"></span>
+      <h2 class="text-sm font-semibold <%= column_accent(column, :header) %>"><%= column.name %></h2>
+    </div>
+    <span class="rounded-full bg-white/5 px-2 py-0.5 text-xs font-medium text-slate-400"
+          data-drag-and-drop-counter><%= column.cards.size %></span>
+  </header>
+
+  <%# Cards drop into this list. min-height keeps an empty column droppable. %>
+  <div class="flex min-h-[60px] flex-col gap-2" data-card-list>
+    <% column.cards.each do |card| %>
+      <%= render "cards/card", card: card %>
+    <% end %>
+  </div>
+
+  <%= form_with url: cards_path, method: :post, class: "mt-2" do |f| %>
+    <%= hidden_field_tag :column_id, column.id %>
+    <%= text_field_tag "card[title]", nil,
+          placeholder: "+ Add a card",
+          class: "w-full rounded-lg border border-white/5 bg-white/5 px-3 py-2 text-sm text-slate-200 placeholder:text-slate-500 focus:border-sky-500/50 focus:outline-none focus:ring-0" %>
+  <% end %>
+</section>

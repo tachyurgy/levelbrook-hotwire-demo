@@ -1,0 +1,12 @@
+<%#
+  A choice is a plain form POST — works with JS off. With JS, Turbo Drive turns
+  the redirect into a morph navigation wrapped in a View Transition. The button
+  fills the row; we keep it a real <button> for accessibility and no-JS.
+%>
+<%= form_with url: story_choice_path(story, choice), method: :post, data: { turbo_action: "advance" } do %>
+  <button type="submit"
+          class="group flex w-full items-center justify-between gap-4 rounded-xl border border-white/10 bg-white/[0.03] px-5 py-4 text-left transition hover:border-orange-500/50 hover:bg-white/[0.06]">
+    <span class="text-[0.97rem] font-medium text-slate-100"><%= choice.label %></span>
+    <span class="shrink-0 translate-x-0 text-orange-400 transition group-hover:translate-x-1" aria-hidden="true">→</span>
+  </button>
+<% end %>

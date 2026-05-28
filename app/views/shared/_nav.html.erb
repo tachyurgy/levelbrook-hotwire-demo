@@ -1,0 +1,17 @@
+<header class="sticky top-0 z-40 border-b border-white/5 bg-slate-950/80 backdrop-blur">
+  <div class="mx-auto flex max-w-6xl items-center justify-between px-5 py-3">
+    <%= link_to root_path, class: "group flex items-center gap-2.5", data: { turbo_frame: "_top" } do %>
+      <span class="grid h-7 w-7 place-items-center rounded-md bg-gradient-to-br from-orange-500 to-rose-500 text-[13px] font-black text-white">L</span>
+      <span class="text-sm font-semibold tracking-tight text-slate-200 group-hover:text-white">
+        Levelbrook<span class="text-slate-500"> · Hotwire Demos</span>
+      </span>
+    <% end %>
+
+    <nav class="flex items-center gap-1 text-sm">
+      <%= link_to "Board", board_path,
+            class: "rounded-md px-3 py-1.5 font-medium #{'bg-white/10 text-white' if current_page?(board_path)} text-slate-300 hover:text-white" %>
+      <%= link_to "Story", stories_path,
+            class: "rounded-md px-3 py-1.5 font-medium #{'bg-white/10 text-white' if controller_name == 'stories' || controller_name == 'scenes'} text-slate-300 hover:text-white" %>
+    </nav>
+  </div>
+</header>

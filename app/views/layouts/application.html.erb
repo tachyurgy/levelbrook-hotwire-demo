@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full">
+  <head>
+    <title><%= content_for(:title) || "Levelbrook Hotwire Demos" %></title>
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="application-name" content="Levelbrook Hotwire Demos">
+    <meta name="mobile-web-app-capable" content="yes">
+    <%= csrf_meta_tags %>
+    <%= csp_meta_tag %>
+
+    <%# --- Hotwire 2026 defaults --- %>
+    <%# Navigation page-refreshes morph the DOM (preserving scroll/focus) %>
+    <%# instead of replacing <body>. broadcasts_refreshes uses the same path. %>
+    <meta name="turbo-refresh-method" content="morph">
+    <meta name="turbo-refresh-scroll" content="preserve">
+    <%# Wrap same-origin renders in document.startViewTransition where supported. %>
+    <meta name="view-transition" content="same-origin">
+
+    <%= yield :head %>
+
+    <link rel="icon" href="/icon.svg" type="image/svg+xml">
+    <link rel="apple-touch-icon" href="/icon.png">
+
+    <%= stylesheet_link_tag :tailwind, "data-turbo-track": "reload" %>
+    <%= javascript_importmap_tags %>
+  </head>
+
+  <body class="h-full bg-slate-950 text-slate-100 antialiased">
+    <%= render "shared/nav" %>
+
+    <% if notice.present? %>
+      <div class="mx-auto max-w-6xl px-5">
+        <div class="mt-4 rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-4 py-2 text-sm text-emerald-200">
+          <%= notice %>
+        </div>
+      </div>
+    <% end %>
+
+    <main>
+      <%= yield %>
+    </main>
+  </body>
+</html>

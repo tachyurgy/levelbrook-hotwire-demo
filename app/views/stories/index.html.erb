@@ -1,0 +1,22 @@
+<% content_for :title, "Story Engine — Levelbrook Hotwire Demos" %>
+
+<div class="mx-auto max-w-3xl px-5 py-12">
+  <p class="text-xs font-semibold uppercase tracking-[0.15em] text-orange-400">Demo 2 · Cinematic</p>
+  <h1 class="mt-1 text-3xl font-bold tracking-tight text-white">Choose-Your-Path Stories</h1>
+  <p class="mt-2 text-slate-400">
+    Branching interactive fiction. Each choice is a Turbo navigation with a View
+    Transition; the ambient bar never reloads; a live tally shows what other readers chose.
+  </p>
+
+  <div class="mt-8 space-y-4">
+    <% @stories.each do |story| %>
+      <%= link_to story_path(story),
+            class: "block rounded-2xl border border-white/10 bg-slate-900/60 p-6 transition hover:border-orange-500/40 hover:bg-slate-900" do %>
+        <p class="text-xs font-medium uppercase tracking-wide text-orange-400/80"><%= story.tagline %></p>
+        <h2 class="mt-1 text-xl font-bold text-white"><%= story.title %></h2>
+        <p class="mt-2 text-sm leading-relaxed text-slate-400"><%= story.blurb %></p>
+        <span class="mt-4 inline-flex items-center gap-1.5 text-sm font-semibold text-orange-400">Begin <span aria-hidden="true">→</span></span>
+      <% end %>
+    <% end %>
+  </div>
+</div>

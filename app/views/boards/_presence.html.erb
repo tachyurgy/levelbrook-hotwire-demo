@@ -1,0 +1,9 @@
+<%# Replaced live by PresenceChannel broadcasts. `count` = browsers connected. %>
+<span id="board_presence"
+      class="inline-flex items-center gap-1.5 rounded-lg border border-white/10 bg-white/5 px-3 py-1.5 text-sm font-medium text-slate-300">
+  <span class="relative flex h-2 w-2">
+    <span class="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75"></span>
+    <span class="relative inline-flex h-2 w-2 rounded-full bg-emerald-500"></span>
+  </span>
+  <%= pluralize(count, "viewer") %>
+</span>
