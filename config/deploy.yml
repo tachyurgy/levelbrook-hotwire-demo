@@ -36,7 +36,7 @@ proxy:
 registry:
   # Box-local registry (registry:2 container on 127.0.0.1:5000). Builder and
   # server are the same Hetzner box, so localhost resolves for both push & pull.
-  server: localhost:5000
+  server: registry.local:5000
   username: kamal
   password:
     - KAMAL_REGISTRY_PASSWORD           # set in .kamal/secrets from ENV
