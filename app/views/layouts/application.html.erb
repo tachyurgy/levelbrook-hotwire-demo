@@ -29,12 +29,17 @@
   </head>
 
   <body class="h-full antialiased">
-    <div class="flex min-h-full flex-col">
-      <%= render "shared/nav" %>
+    <%# Product-workspace shell: persistent left rail + topbar + scrolling main. %>
+    <div class="flex min-h-full">
+      <%= render "shared/sidebar" %>
 
-      <main class="flex-1">
-        <%= yield %>
-      </main>
+      <div class="flex min-h-full min-w-0 flex-1 flex-col">
+        <%= render "shared/topbar" %>
+
+        <main class="flex-1">
+          <%= yield %>
+        </main>
+      </div>
     </div>
 
     <%# Toast stack — Turbo Stream side-channel appends here from anywhere. %>

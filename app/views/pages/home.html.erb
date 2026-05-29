@@ -1,68 +1,156 @@
-<% content_for :title, "Levelbrook Workspace — a Hotwire showcase" %>
+<% content_for :title, "Levelbrook Workspace" %>
+<% content_for :breadcrumb, "Dashboard" %>
 
-<section class="border-b hairline">
-  <div class="mx-auto max-w-[1400px] px-5 py-16 md:py-24">
-    <p class="eyebrow">A Hotwire showcase · Rails 8 · Turbo 8 morph · Stimulus · Action Cable</p>
-    <h1 class="mt-3 max-w-3xl font-display text-5xl font-extrabold leading-[1.04] tracking-tight md:text-6xl">
-      A team workspace built entirely with <span class="text-[var(--color-accent)]">HTML over the wire</span>.
-    </h1>
-    <p class="mt-5 max-w-2xl text-lg leading-relaxed text-[var(--color-ink-soft)]">
-      Levelbrook is a Linear/Basecamp-lite workspace — a Jira-grade kanban board, real-time chat with
-      presence, live search, inline editing, and a ⌘K palette. No SPA framework. No client state. Just
-      Turbo, Stimulus, and one accent color.
-    </p>
-    <div class="mt-8 flex flex-wrap gap-3">
-      <%= link_to "Open the board", project_path(Project.first), class: "btn btn-accent", data: { turbo_action: "advance" } %>
-      <%= link_to "Open chat", channels_path, class: "btn btn-ghost", data: { turbo_action: "advance" } %>
-      <button type="button" onclick="window.dispatchEvent(new CustomEvent('command-palette:open'))" class="btn btn-ghost">Try ⌘K</button>
+<div class="mx-auto max-w-[1400px] px-5 py-8">
+
+  <%# --- Header + quick actions --------------------------------------- %>
+  <div class="flex flex-wrap items-end justify-between gap-4">
+    <div>
+      <p class="eyebrow">Delivery workspace</p>
+      <h1 class="mt-1 font-display text-3xl font-extrabold tracking-tight">
+        <%= @primary&.name || "Workspace" %> overview
+      </h1>
+      <p class="mt-1.5 text-sm text-[var(--color-ink-soft)]">
+        <%= pluralize(@members.size, "engineer") %> · <%= pluralize(@projects.size, "project") %> ·
+        <%= pluralize(@channels.size, "channel") %> — everything below is live, server-rendered data.
+      </p>
+    </div>
+    <div class="flex flex-wrap gap-2">
+      <% if @primary %>
+        <%= link_to "Open board", project_path(@primary), class: "btn btn-accent", data: { turbo_action: "advance" } %>
+      <% end %>
+      <%= link_to "Team room", channels_path, class: "btn btn-ghost", data: { turbo_action: "advance" } %>
     </div>
   </div>
-</section>
 
-<section class="mx-auto max-w-[1400px] px-5 py-14">
-  <div class="mb-8 flex items-end justify-between">
-    <h2 class="font-display text-2xl font-bold tracking-tight">Modules</h2>
-    <p class="hidden font-mono text-xs text-[var(--color-ink-faint)] sm:block">each demonstrates a distinct Hotwire technique</p>
-  </div>
-
-  <div class="grid gap-px overflow-hidden rounded-xl border hairline bg-[var(--color-hairline)] sm:grid-cols-2 lg:grid-cols-3">
-    <% modules = [
-         ["Kanban board", "Drag a card; it moves in every connected window.", "SortableJS → PUT → broadcasts_refreshes → morph", project_path(Project.first)],
-         ["Issue detail modal", "Click a card to open a lazy modal with inline edits + comments.", "Lazy Turbo Frame + frame-swap inline edit", project_path(Project.first)],
-         ["Real-time chat", "Messages, presence, and typing indicators.", "broadcast_append_to + raw Action Cable", channels_path],
-         ["Live search", "Type-ahead filtering with shareable URLs.", "Debounced frame + turbo-action advance", search_path],
-         ["Activity feed", "Infinite scroll that just appears.", "Deferred lazy Turbo Frames", activities_path],
-         ["Live validation", "Per-field errors on blur, server-rendered.", "Turbo Stream replace per field", new_signup_path],
-         ["Command palette", "Global ⌘K with server-rendered results.", "Hotkeys + frame fetch + keyboard nav", nil],
-         ["Toasts", "A streamed, auto-dismissing side-channel.", "turbo_stream.append from anywhere", nil],
-         ["Persistent player", "Audio keeps playing across every navigation.", "data-turbo-permanent + Web Audio", nil]
+  <%# --- Metric tiles ------------------------------------------------- %>
+  <div class="mt-6 grid grid-cols-2 gap-3 lg:grid-cols-4">
+    <% tiles = [
+         ["Open issues",   @issue_count,    "across all columns"],
+         ["Story points",  @points_total,   "committed this board"],
+         ["High priority", @high_priority,  "urgent + high"],
+         ["Team",          @members.size,   "active members"]
        ] %>
-    <% modules.each do |title, desc, technique, path| %>
-      <% wrapper_attrs = path ? { tag: :a, href: path } : { tag: :div } %>
-      <%= content_tag wrapper_attrs[:tag], href: wrapper_attrs[:href],
-            data: (path ? { turbo_action: "advance" } : {}),
-            class: "group block bg-[var(--color-surface)] p-6 transition hover:bg-[var(--color-cool-50)]" do %>
-        <h3 class="font-display text-lg font-bold tracking-tight group-hover:text-[var(--color-accent)]"><%= title %></h3>
-        <p class="mt-1.5 text-sm leading-relaxed text-[var(--color-ink-soft)]"><%= desc %></p>
-        <p class="mt-4 font-mono text-[11px] leading-relaxed text-[var(--color-ink-faint)]"><%= technique %></p>
-      <% end %>
+    <% tiles.each do |label, value, sub| %>
+      <div class="rounded-xl border hairline bg-[var(--color-surface)] p-4">
+        <p class="eyebrow"><%= label %></p>
+        <p class="mt-2 font-display text-3xl font-extrabold leading-none tracking-tight tabular-nums"><%= value %></p>
+        <p class="mt-1.5 font-mono text-[11px] text-[var(--color-ink-faint)]"><%= sub %></p>
+      </div>
     <% end %>
   </div>
-</section>
 
-<section class="mx-auto max-w-[1400px] px-5 pb-24">
-  <div class="rounded-xl border hairline bg-[var(--color-surface)] p-6">
+  <%# --- Board snapshot + recent activity ----------------------------- %>
+  <div class="mt-6 grid gap-4 lg:grid-cols-3">
+
+    <%# Board snapshot (real columns + top issues) %>
+    <div class="rounded-xl border hairline bg-[var(--color-surface)] lg:col-span-2">
+      <div class="flex items-center justify-between border-b hairline px-5 py-3">
+        <h2 class="font-display text-base font-bold tracking-tight">Board snapshot</h2>
+        <% if @primary %>
+          <%= link_to "Open #{@primary.key} →", project_path(@primary),
+                class: "font-mono text-[11px] text-[var(--color-ink-faint)] hover:text-[var(--color-accent)]",
+                data: { turbo_action: "advance" } %>
+        <% end %>
+      </div>
+      <% if @primary %>
+        <div class="grid gap-px overflow-hidden bg-[var(--color-hairline)] sm:grid-cols-2 xl:grid-cols-4">
+          <% @primary.columns.each do |column| %>
+            <div class="bg-[var(--color-surface)] p-3.5">
+              <div class="flex items-center justify-between">
+                <span class="text-[13px] font-semibold"><%= column.name %></span>
+                <span class="font-mono text-[11px] text-[var(--color-ink-faint)] tabular-nums"><%= column.issues.size %></span>
+              </div>
+              <div class="mt-2.5 space-y-1.5">
+                <% column.issues.first(3).each do |issue| %>
+                  <%= link_to project_path(@primary, anchor: dom_id(issue)),
+                        class: "flex items-start gap-1.5 rounded-md border hairline bg-[var(--color-cool-50)] px-2 py-1.5 transition hover:border-[var(--color-accent-soft)]",
+                        data: { turbo_action: "advance" } do %>
+                    <span class="mt-0.5"><%= priority_icon(issue.priority) %></span>
+                    <span class="min-w-0">
+                      <span class="block font-mono text-[10px] text-[var(--color-ink-faint)]"><%= issue.key %></span>
+                      <span class="block truncate text-[12px] leading-snug text-[var(--color-ink)]"><%= issue.title %></span>
+                    </span>
+                  <% end %>
+                <% end %>
+                <% if column.issues.empty? %>
+                  <p class="font-mono text-[11px] text-[var(--color-ink-faint)]">—</p>
+                <% end %>
+              </div>
+            </div>
+          <% end %>
+        </div>
+      <% else %>
+        <p class="p-5 text-sm text-[var(--color-ink-soft)]">No project yet.</p>
+      <% end %>
+    </div>
+
+    <%# Recent activity (real) %>
+    <div class="rounded-xl border hairline bg-[var(--color-surface)]">
+      <div class="flex items-center justify-between border-b hairline px-5 py-3">
+        <h2 class="font-display text-base font-bold tracking-tight">Recent activity</h2>
+        <%= link_to "All →", activities_path,
+              class: "font-mono text-[11px] text-[var(--color-ink-faint)] hover:text-[var(--color-accent)]",
+              data: { turbo_action: "advance" } %>
+      </div>
+      <ul class="divide-y hairline">
+        <% @recent.each do |item| %>
+          <li class="flex items-start gap-3 px-5 py-3">
+            <span class="mt-0.5 text-[var(--color-ink-faint)]"><%= ws_icon(item.icon == "issue" ? "board" : "chat", cls: "h-3.5 w-3.5") %></span>
+            <div class="min-w-0">
+              <p class="text-[13px] leading-snug">
+                <span class="font-semibold"><%= item.actor %></span>
+                <span class="text-[var(--color-ink-soft)]"><%= item.verb %></span>
+                <span class="font-medium"><%= item.subject %></span>
+              </p>
+              <p class="mt-0.5 truncate font-mono text-[11px] text-[var(--color-ink-faint)]">
+                <%= item.context %> · <%= time_ago_in_words(item.at) %> ago
+              </p>
+            </div>
+          </li>
+        <% end %>
+      </ul>
+    </div>
+  </div>
+
+  <%# --- Team strip --------------------------------------------------- %>
+  <div class="mt-4 rounded-xl border hairline bg-[var(--color-surface)] px-5 py-4">
     <p class="eyebrow mb-3">The team</p>
-    <div class="flex flex-wrap gap-4">
+    <div class="flex flex-wrap gap-x-6 gap-y-3">
       <% @members.each do |m| %>
         <div class="flex items-center gap-2.5">
-          <%= render "shared/avatar", member: m, size: :lg %>
+          <%= render "shared/avatar", member: m, size: :md %>
           <div>
             <div class="text-sm font-semibold leading-tight"><%= m.name %></div>
-            <div class="font-mono text-[11px] text-[var(--color-ink-faint)]"><%= m.role %></div>
+            <div class="font-mono text-[10px] text-[var(--color-ink-faint)]"><%= m.role %></div>
           </div>
         </div>
       <% end %>
     </div>
   </div>
-</section>
+
+  <%# --- Proof strip: explain AFTER the working UI -------------------- %>
+  <div class="mt-8 border-t hairline pt-5">
+    <p class="eyebrow mb-3">How this workspace is built — open any feature, then read the technique</p>
+    <div class="grid gap-px overflow-hidden rounded-xl border hairline bg-[var(--color-hairline)] sm:grid-cols-2 lg:grid-cols-3">
+      <% proofs = [
+           ["Kanban board", @primary ? project_path(@primary) : projects_path, "SortableJS → PUT → broadcasts_refreshes → Turbo morph; no custom broadcast code."],
+           ["Issue drawer", @primary ? project_path(@primary) : projects_path, "Lazy Turbo Frame; /issues/:id still works as a full page. Frame-scoped inline edit."],
+           ["Team room", channels_path, "broadcast_append_to for messages; raw Action Cable for presence + typing."],
+           ["Live search", search_path, "A normal form enhanced with a debounced submit; URL/history preserved."],
+           ["Activity feed", activities_path, "Lazy Turbo Frames paginate real records — infinite scroll, almost no JS."],
+           ["Intake form", new_signup_path, "Server-authoritative validation streamed per field; works with JS off."]
+         ] %>
+      <% proofs.each do |title, path, technique| %>
+        <%= link_to path, data: { turbo_action: "advance" },
+              class: "group block bg-[var(--color-surface)] p-4 transition hover:bg-[var(--color-cool-50)]" do %>
+          <div class="flex items-center justify-between">
+            <h3 class="text-[13px] font-bold tracking-tight group-hover:text-[var(--color-accent)]"><%= title %></h3>
+            <span class="font-mono text-[11px] text-[var(--color-ink-faint)] transition group-hover:translate-x-0.5">→</span>
+          </div>
+          <p class="mt-1.5 font-mono text-[11px] leading-relaxed text-[var(--color-ink-faint)]"><%= technique %></p>
+        <% end %>
+      <% end %>
+    </div>
+  </div>
+</div>

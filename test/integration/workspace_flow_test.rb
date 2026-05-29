@@ -10,10 +10,12 @@ class WorkspaceFlowTest < ActionDispatch::IntegrationTest
     @channel = Channel.create!(name: "general", slug: "general", topic: "Hi")
   end
 
-  test "landing page renders the showcase" do
+  test "landing page renders the workspace dashboard" do
     get root_path
     assert_response :success
-    assert_select "h1", /HTML over the wire/
+    assert_select "h1", /overview/
+    assert_select "h2", "Board snapshot"
+    assert_select "h2", "Recent activity"
   end
 
   test "board shows columns and issues" do
