@@ -42,4 +42,35 @@ class IssueTest < ActiveSupport::TestCase
     end
     assert_operator @project.reload.updated_at, :>, original
   end
+
+  test "validates points are within 0..21" do
+    assert_not @todo.issues.build(title: "x", points: -1).valid?
+    assert_not @todo.issues.build(title: "x", points: 22).valid?
+    assert @todo.issues.build(title: "x", points: 0).valid?
+    assert @todo.issues.build(title: "x", points: 21).valid?
+  end
+
+  test "assignee is optional" do
+    assert @todo.issues.build(title: "no assignee").valid?
+  end
+
+  test "does not overwrite an explicitly provided number" do
+    issue = @todo.issues.create!(title: "manual", number: 99)
+    assert_equal 99, issue.number
+  end
+
+  test "comments come back oldest first" do
+    issue = @todo.issues.create!(title: "with comments")
+    first = issue.comments.create!(body: "one")
+    second = nil
+    travel 1.second do
+      second = issue.comments.create!(body: "two")
+    end
+    assert_equal [ first, second ], issue.comments.to_a
+  end
+
+  test "delegates project to its column" do
+    issue = @todo.issues.create!(title: "deleg")
+    assert_equal @project, issue.project
+  end
 end
