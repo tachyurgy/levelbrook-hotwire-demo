@@ -3,6 +3,7 @@ Seeds.seed_all!   # workspace + cadence (members, projects, issues, channels)
 Ballot.seed!      # live polls & Q&A rooms
 Pulse.seed!       # ops dashboard services + incidents
 Spindle.seed!     # albums + tracks
+Grid.seed!        # spreadsheet sheets + rows
 
 puts "Members:  #{Member.count}"
 puts "Projects: #{Project.count} (#{Project.pluck(:key).join(', ')})"
@@ -12,3 +13,4 @@ puts "Messages: #{Message.count}"
 puts "Ballot:   #{Ballot::Room.count} rooms, #{Ballot::Poll.count} polls"
 puts "Pulse:    #{Pulse::Service.count} services, #{Pulse::Incident.count} incidents"
 puts "Spindle:  #{Spindle::Album.count} albums, #{Spindle::Track.count} tracks"
+puts "Grid:     #{Grid::Sheet.count} sheets, #{Grid::Row.count} rows"

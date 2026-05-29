@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_05_29_000003) do
+ActiveRecord::Schema[8.1].define(version: 2026_05_29_000005) do
   create_table "ballot_options", force: :cascade do |t|
     t.datetime "created_at", null: false
     t.string "label", null: false
@@ -80,6 +80,27 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_29_000003) do
     t.index ["member_id"], name: "index_comments_on_member_id"
   end
 
+  create_table "grid_rows", force: :cascade do |t|
+    t.string "category", default: "—", null: false
+    t.datetime "created_at", null: false
+    t.string "label", null: false
+    t.integer "position", default: 0, null: false
+    t.integer "qty", default: 1, null: false
+    t.integer "sheet_id", null: false
+    t.integer "unit_price", default: 0, null: false
+    t.datetime "updated_at", null: false
+    t.index ["sheet_id"], name: "index_grid_rows_on_sheet_id"
+  end
+
+  create_table "grid_sheets", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.string "name", null: false
+    t.string "slug", null: false
+    t.string "unit", default: "$", null: false
+    t.datetime "updated_at", null: false
+    t.index ["slug"], name: "index_grid_sheets_on_slug", unique: true
+  end
+
   create_table "issues", force: :cascade do |t|
     t.integer "assignee_id"
     t.integer "column_id", null: false
@@ -110,6 +131,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_29_000003) do
     t.integer "channel_id", null: false
     t.datetime "created_at", null: false
     t.integer "member_id"
+    t.text "reactions", default: "{}", null: false
     t.datetime "updated_at", null: false
     t.index ["channel_id"], name: "index_messages_on_channel_id"
     t.index ["member_id"], name: "index_messages_on_member_id"
@@ -183,6 +205,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_29_000003) do
   add_foreign_key "columns", "projects"
   add_foreign_key "comments", "issues"
   add_foreign_key "comments", "members"
+  add_foreign_key "grid_rows", "grid_sheets", column: "sheet_id"
   add_foreign_key "issues", "columns"
   add_foreign_key "issues", "members", column: "assignee_id"
   add_foreign_key "messages", "channels"

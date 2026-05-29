@@ -73,7 +73,7 @@ Rails.application.routes.draw do
     resources :sheets, only: [ :index, :show ], param: :slug do
       member { post :reset }
     end
-    resources :cells, only: [ :edit, :update ]
+    resources :cells, only: [ :update ]
   end
 
   # ============================ Spindle (media) ===========================

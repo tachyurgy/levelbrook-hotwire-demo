@@ -1,63 +1,42 @@
-<% content_for :title, "##{@channel.name} — Chat" %>
+<% content_for :title, "##{@channel.name} — Cadence" %>
 
-<div class="mx-auto flex h-[calc(100vh-3.5rem-3.5rem)] max-w-[1400px] gap-0 px-5">
-  <%# Channel list %>
-  <aside class="hidden w-56 shrink-0 border-r hairline py-5 pr-4 md:block">
-    <p class="eyebrow mb-2 px-1">Channels</p>
-    <nav class="space-y-0.5">
-      <% @channels.each do |ch| %>
-        <%= link_to channel_path(ch), data: { turbo_action: "advance" },
-              class: "block rounded-md px-2.5 py-1.5 text-sm font-medium transition #{ch == @channel ? 'bg-[var(--color-ink)] text-white' : 'text-[var(--color-ink-soft)] hover:bg-[var(--color-cool-100)]'}" do %>
-          <span class="font-mono opacity-60">#</span> <%= ch.name %>
-        <% end %>
+<%# Conversation. The channel list lives in the app rail; this is full-width. %>
+<section class="mx-auto flex h-[calc(100vh-3.5rem)] max-w-4xl flex-col px-5"
+         data-controller="chat presence typing"
+         data-presence-slug-value="<%= @channel.slug %>"
+         data-typing-slug-value="<%= @channel.slug %>"
+         data-typing-name-value="<%= current_member&.name %>">
+  <header class="flex items-center justify-between border-b hairline px-1 py-3">
+    <div>
+      <h1 class="font-display text-lg font-bold tracking-tight"># <%= @channel.name %></h1>
+      <p class="text-xs text-[var(--color-ink-soft)]"><%= @channel.topic %></p>
+    </div>
+    <%# Presence roster — populated live over Action Cable. %>
+    <div class="flex items-center gap-2">
+      <span class="eyebrow">Online</span>
+      <div data-presence-target="roster" class="flex items-center gap-1.5"></div>
+    </div>
+  </header>
+
+  <%# Live message feed. New messages stream-append here for every subscriber. %>
+  <%= turbo_stream_from @channel %>
+  <div data-chat-target="scroll" class="flex-1 overflow-y-auto py-3">
+    <div id="messages">
+      <% @messages.each do |message| %>
+        <%= render "messages/message", message: message %>
       <% end %>
-    </nav>
-
-    <p class="eyebrow mb-2 mt-6 px-1">You are</p>
-    <div class="flex items-center gap-2 px-1">
-      <%= render "shared/avatar", member: current_member, size: :sm %>
-      <span class="text-sm font-medium"><%= current_member&.name %></span>
     </div>
-  </aside>
+  </div>
 
-  <%# Conversation %>
-  <section class="flex min-w-0 flex-1 flex-col"
-           data-controller="chat presence typing"
-           data-presence-slug-value="<%= @channel.slug %>"
-           data-typing-slug-value="<%= @channel.slug %>"
-           data-typing-name-value="<%= current_member&.name %>">
-    <header class="flex items-center justify-between border-b hairline px-5 py-3">
-      <div>
-        <h1 class="font-display text-lg font-bold tracking-tight"># <%= @channel.name %></h1>
-        <p class="text-xs text-[var(--color-ink-soft)]"><%= @channel.topic %></p>
-      </div>
-      <%# Presence roster — populated live over Action Cable. %>
-      <div class="flex items-center gap-2">
-        <span class="eyebrow">Online</span>
-        <div data-presence-target="roster" class="flex items-center gap-1.5"></div>
-      </div>
-    </header>
+  <%# Typing indicator %>
+  <div class="h-5 px-1">
+    <span data-typing-target="indicator" class="hidden font-mono text-[11px] text-[var(--color-ink-faint)]">
+      <span data-typing-target="author"></span> is typing…
+    </span>
+  </div>
 
-    <%# Live message feed. New messages stream-append here for every subscriber. %>
-    <%= turbo_stream_from @channel %>
-    <div data-chat-target="scroll" class="flex-1 overflow-y-auto py-3">
-      <div id="messages">
-        <% @messages.each do |message| %>
-          <%= render "messages/message", message: message %>
-        <% end %>
-      </div>
-    </div>
-
-    <%# Typing indicator %>
-    <div class="h-5 px-5">
-      <span data-typing-target="indicator" class="hidden font-mono text-[11px] text-[var(--color-ink-faint)]">
-        <span data-typing-target="author"></span> is typing…
-      </span>
-    </div>
-
-    <footer class="border-t hairline p-3">
-      <%= render "messages/form", channel: @channel %>
-      <%= technique_caption "Messages append via broadcast_append_to; presence + typing ride raw Action Cable channels — not DOM over the wire." %>
-    </footer>
-  </section>
-</div>
+  <footer class="border-t hairline py-3">
+    <%= render "messages/form", channel: @channel %>
+    <%= technique_caption "Messages append via broadcast_append_to; reactions broadcast_replace just one message; presence + typing ride raw Action Cable channels — not DOM over the wire." %>
+  </footer>
+</section>

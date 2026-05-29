@@ -1,4 +1,7 @@
-<div id="<%= dom_id(message) %>" class="flex items-start gap-3 px-5 py-2 hover:bg-[var(--color-cool-50)]">
+<% counts = message.reactions_hash %>
+<div id="<%= dom_id(message) %>" class="group flex items-start gap-3 px-5 py-2 hover:bg-[var(--color-cool-50)]"
+     data-controller="emoji-react"
+     data-emoji-react-url-value="<%= channel_message_reaction_path(message.channel, message) %>">
   <div class="pt-0.5"><%= render "shared/avatar", member: message.member, size: :md %></div>
   <div class="min-w-0 flex-1">
     <div class="flex items-baseline gap-2">
@@ -6,5 +9,17 @@
       <span class="font-mono text-[11px] text-[var(--color-ink-faint)]"><%= message.created_at.strftime("%-l:%M %p") %></span>
     </div>
     <p class="text-sm leading-relaxed text-[var(--color-ink)]"><%= message.body %></p>
+
+    <%# Reaction row — counted emojis stay visible; the rest appear on hover. %>
+    <div class="mt-1.5 flex items-center gap-1">
+      <% Message::EMOJI.each do |emoji| %>
+        <% n = counts[emoji].to_i %>
+        <button type="button" data-action="emoji-react#react" data-emoji="<%= emoji %>"
+                class="flex items-center gap-1 rounded-full border hairline px-1.5 py-0.5 text-xs transition hover:border-[var(--color-accent)] <%= n.positive? ? 'border-[var(--color-accent)]' : 'opacity-45 group-hover:opacity-100' %>">
+          <span><%= emoji %></span>
+          <span data-count class="font-mono text-[10px] tabular-nums <%= 'hidden' unless n.positive? %>"><%= n %></span>
+        </button>
+      <% end %>
+    </div>
   </div>
 </div>

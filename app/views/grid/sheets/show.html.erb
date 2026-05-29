@@ -1,0 +1,55 @@
+<% content_for :title, "#{@sheet.name} — Grid" %>
+
+<%# Subscribe so a cell edit in one tab morphs the recomputed totals everywhere. %>
+<%= turbo_stream_from @sheet %>
+
+<div class="mx-auto max-w-5xl px-5 py-8">
+  <div class="flex flex-wrap items-start justify-between gap-3">
+    <div>
+      <p class="eyebrow">Live spreadsheet · formula cells morph</p>
+      <h1 class="mt-1 font-display text-3xl font-extrabold tracking-tight"><%= @sheet.name %></h1>
+      <p class="mt-1.5 text-sm text-[var(--color-ink-soft)]">
+        Click any white cell to edit it. <span class="font-medium">Total</span> and the grand total are formula
+        cells — the server recomputes them and morphs just those cells onto every open tab.
+      </p>
+    </div>
+    <%= button_to "Reset sheet", reset_grid_sheet_path(@sheet), class: "btn btn-ghost", data: { turbo_confirm: "Reset this sheet to the seeded values?" } %>
+  </div>
+
+  <div class="mt-6 overflow-hidden rounded-xl border hairline bg-[var(--color-surface)]">
+    <table class="w-full border-collapse">
+      <thead>
+        <tr class="border-b hairline bg-[var(--color-cool-50)] text-left">
+          <th class="px-3 py-2.5 font-mono text-[10px] uppercase tracking-wider text-[var(--color-ink-faint)]">Item</th>
+          <th class="px-3 py-2.5 font-mono text-[10px] uppercase tracking-wider text-[var(--color-ink-faint)]">Category</th>
+          <th class="px-3 py-2.5 text-right font-mono text-[10px] uppercase tracking-wider text-[var(--color-ink-faint)]">Qty</th>
+          <th class="px-3 py-2.5 text-right font-mono text-[10px] uppercase tracking-wider text-[var(--color-ink-faint)]">Unit price</th>
+          <th class="px-3 py-2.5 text-right font-mono text-[10px] uppercase tracking-wider text-[var(--color-ink-faint)]">Total <span class="text-[var(--color-accent)]">ƒ</span></th>
+        </tr>
+      </thead>
+      <tbody class="divide-y hairline">
+        <% @rows.each do |row| %>
+          <tr id="<%= dom_id(row) %>" class="hover:bg-[var(--color-cool-50)]/40">
+            <td><%= render "grid/sheets/cell", row: row, field: "label", type: :text %></td>
+            <td><%= render "grid/sheets/cell", row: row, field: "category", type: :text %></td>
+            <td><%= render "grid/sheets/cell", row: row, field: "qty", type: :number %></td>
+            <td><%= render "grid/sheets/cell", row: row, field: "unit_price", type: :number %></td>
+            <td class="px-3 py-2.5 text-right font-mono text-sm font-semibold tabular-nums text-[var(--color-ink)]">
+              <%= number_to_currency(row.total, unit: @sheet.unit, precision: 0) %>
+            </td>
+          </tr>
+        <% end %>
+      </tbody>
+      <tfoot>
+        <tr class="border-t-2 border-[var(--color-hairline)] bg-[var(--color-cool-50)]">
+          <td colspan="4" class="px-3 py-3 text-right text-sm font-semibold">Grand total <span class="text-[var(--color-accent)]">ƒ</span></td>
+          <td class="px-3 py-3 text-right font-mono text-base font-extrabold tabular-nums">
+            <%= number_to_currency(@sheet.grand_total, unit: @sheet.unit, precision: 0) %>
+          </td>
+        </tr>
+      </tfoot>
+    </table>
+  </div>
+
+  <%= technique_caption "Cells are frame-scoped inline edits (instant click-to-edit, auto-save on blur). Totals are never stored — the server recomputes them and broadcasts_refreshes morphs only the changed cells across every client. No spreadsheet engine, no React." %>
+</div>

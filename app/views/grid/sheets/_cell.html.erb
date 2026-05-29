@@ -1,0 +1,31 @@
+<%#
+  An editable spreadsheet cell. Display + input live in the same node; clicking
+  reveals the input instantly (inline-edit controller — no round-trip), and it
+  auto-submits on change. The save touches the sheet so the formula cells morph.
+  locals: row, field, type (:text | :number), align ("left" | "right")
+%>
+<% align ||= (type == :number ? "right" : "left") %>
+<% value = row.public_send(field) %>
+<div data-controller="inline-edit" class="px-2 py-1.5">
+  <button type="button" data-inline-edit-target="display" data-action="inline-edit#edit"
+          class="block w-full rounded px-1 py-0.5 text-sm text-<%= align %> transition hover:bg-[var(--color-accent-soft)]">
+    <% if type == :number && field == "unit_price" %>
+      <%= number_to_currency(value, unit: row.sheet.unit, precision: 0) %>
+    <% else %>
+      <%= value %>
+    <% end %>
+  </button>
+
+  <%= form_with url: grid_cell_path(row), method: :patch, data: { inline_edit_target: "form" }, class: "hidden" do |f| %>
+    <%= hidden_field_tag :field, field %>
+    <% if type == :number %>
+      <%= number_field_tag "row[#{field}]", value, min: 0, onchange: "this.form.requestSubmit()",
+            data: { inline_edit_target: "input" },
+            class: "field-input w-full py-1 text-sm text-#{align}" %>
+    <% else %>
+      <%= text_field_tag "row[#{field}]", value, onchange: "this.form.requestSubmit()",
+            data: { inline_edit_target: "input" },
+            class: "field-input w-full py-1 text-sm" %>
+    <% end %>
+  <% end %>
+</div>
