@@ -1,10 +1,10 @@
 <!DOCTYPE html>
 <html lang="en" class="h-full">
   <head>
-    <title><%= content_for(:title) || "Levelbrook Workspace" %></title>
+    <title><%= content_for(:title) || "Levelbrook · Hotwire Showcase" %></title>
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="application-name" content="Levelbrook Workspace">
+    <meta name="application-name" content="Levelbrook Showcase">
     <%= csrf_meta_tags %>
     <%= csp_meta_tag %>
 
@@ -29,30 +29,31 @@
   </head>
 
   <body class="h-full antialiased">
-    <%# Product-workspace shell: persistent left rail + topbar + scrolling main. %>
-    <div class="flex min-h-full">
-      <%= render "shared/sidebar" %>
+    <% if current_app %>
+      <%# Themeable product shell. The accent override re-skins every %>
+      <%# var(--color-accent) usage in this app's views — one CSS custom %>
+      <%# property, six products. %>
+      <div class="flex min-h-full"
+           style="--color-accent: <%= current_app.accent %>; --color-accent-soft: <%= current_app.accent_soft %>;">
+        <%= render "shared/app_sidebar", app: current_app %>
 
-      <div class="flex min-h-full min-w-0 flex-1 flex-col">
-        <%= render "shared/topbar" %>
-
-        <main class="flex-1">
-          <%= yield %>
-        </main>
+        <div class="flex min-h-full min-w-0 flex-1 flex-col">
+          <%= render "shared/app_topbar", app: current_app %>
+          <main class="flex-1"><%= yield %></main>
+        </div>
       </div>
-    </div>
+
+      <%# Workspace-only chrome: the lazy issue-drawer frame + ⌘K palette. %>
+      <% if current_app.key == :workspace %>
+        <%= render "shared/modal" %>
+        <%= render "shared/command_palette" %>
+      <% end %>
+    <% else %>
+      <%# Gallery / standalone pages render chromeless. %>
+      <%= yield %>
+    <% end %>
 
     <%# Toast stack — Turbo Stream side-channel appends here from anywhere. %>
-    <div id="toasts" class="pointer-events-none fixed bottom-20 right-5 z-50 flex w-80 flex-col gap-2"></div>
-
-    <%# Lazy Turbo Frame modal — links with data-turbo-frame="modal" render here. %>
-    <%= render "shared/modal" %>
-
-    <%# ⌘K command palette overlay. %>
-    <%= render "shared/command_palette" %>
-
-    <%# Persistent media player. Lives in the layout, is permanent across all %>
-    <%# Turbo navigations, and never re-mounts — so playback never cuts out. %>
-    <%= render "shared/player" %>
+    <div id="toasts" class="pointer-events-none fixed bottom-5 right-5 z-50 flex w-80 flex-col gap-2"></div>
   </body>
 </html>

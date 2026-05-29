@@ -1,6 +1,22 @@
 <%= turbo_frame_tag dom_id(issue, :title) do %>
-  <%= link_to issue_field_path(issue, :title), class: "group block cursor-text rounded-md -mx-1 px-1 py-0.5 hover:bg-[var(--color-cool-50)]" do %>
-    <h2 class="font-display text-xl font-bold leading-tight tracking-tight"><%= issue.title %></h2>
-    <span class="eyebrow opacity-0 transition group-hover:opacity-100">click to edit</span>
-  <% end %>
+  <div data-controller="inline-edit">
+    <%# Display — click toggles the form instantly (JS); GETs it without JS. %>
+    <%= link_to issue_field_path(issue, :title),
+          data: { inline_edit_target: "display", action: "inline-edit#edit" },
+          class: "group block cursor-text rounded-md -mx-1 px-1 py-0.5 hover:bg-[var(--color-cool-50)]" do %>
+      <h2 class="font-display text-xl font-bold leading-tight tracking-tight"><%= issue.title %></h2>
+      <span class="eyebrow opacity-0 transition group-hover:opacity-100">click to edit</span>
+    <% end %>
+
+    <%# Edit form — present up front, hidden until toggled. %>
+    <%= form_with model: issue, url: issue_field_path(issue, :title), method: :patch,
+          data: { inline_edit_target: "form" }, class: "hidden" do |f| %>
+      <div class="flex items-start gap-2">
+        <%= f.text_field :title, data: { inline_edit_target: "input" },
+              class: "field-input font-display text-lg font-bold" %>
+        <%= f.submit "Save", class: "btn btn-accent shrink-0" %>
+        <button type="button" data-action="inline-edit#cancel" class="btn btn-ghost shrink-0">Cancel</button>
+      </div>
+    <% end %>
+  </div>
 <% end %>

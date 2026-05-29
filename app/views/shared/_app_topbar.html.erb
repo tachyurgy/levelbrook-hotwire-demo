@@ -1,0 +1,42 @@
+<%#
+  Themed product topbar: breadcrumb + a "switch demo" menu + the inline search.
+  `app` local = current Showcase::App.
+%>
+<header class="sticky top-0 z-30 flex h-14 items-center gap-3 border-b hairline bg-[var(--color-surface)]/90 px-4 backdrop-blur md:px-6">
+  <%# Breadcrumb — "Levelbrook" returns to the switcher. %>
+  <nav class="flex items-center gap-2 text-sm" aria-label="Breadcrumb">
+    <%= link_to "Levelbrook", root_path, class: "text-[var(--color-ink-faint)] hover:text-[var(--color-ink)]", data: { turbo_action: "advance" } %>
+    <span class="text-[var(--color-ink-faint)]">/</span>
+    <span class="font-semibold text-[var(--color-ink)]"><%= app.name %></span>
+  </nav>
+
+  <%# Switch-demo menu (zero-JS <details> popover). %>
+  <details class="relative ml-1 hidden sm:block" data-controller="menu" data-action="toggle->menu#sync">
+    <summary class="flex cursor-pointer list-none items-center gap-1.5 rounded-md border hairline bg-[var(--color-cool-50)] px-2 py-1 text-xs font-medium text-[var(--color-ink-soft)] transition hover:text-[var(--color-ink)]">
+      <%= ws_icon "grip", cls: "h-3.5 w-3.5" %> Switch demo
+    </summary>
+    <div class="absolute left-0 top-full z-40 mt-1.5 w-64 overflow-hidden rounded-xl border hairline bg-[var(--color-surface)] p-1.5 shadow-xl">
+      <% Showcase.all.each do |other| %>
+        <%= link_to app_entry_path(other),
+              data: { turbo_action: "advance" },
+              class: "flex items-center gap-2.5 rounded-lg px-2 py-1.5 transition hover:bg-[var(--color-cool-50)] #{other.key == app.key ? 'bg-[var(--color-cool-50)]' : ''}" do %>
+          <span class="grid h-7 w-7 shrink-0 place-items-center rounded-md font-display text-xs font-extrabold text-white" style="background: <%= other.accent %>"><%= other.glyph %></span>
+          <span class="min-w-0">
+            <span class="block text-[13px] font-semibold leading-tight"><%= other.name %></span>
+            <span class="block truncate font-mono text-[10px] text-[var(--color-ink-faint)]"><%= other.domain %></span>
+          </span>
+        <% end %>
+      <% end %>
+    </div>
+  </details>
+
+  <div class="ml-auto flex items-center gap-3">
+    <% if app.key == :workspace %>
+      <%= render "search/inline" %>
+    <% end %>
+
+    <% if current_member %>
+      <%= render "shared/avatar", member: current_member, size: :md %>
+    <% end %>
+  </div>
+</header>

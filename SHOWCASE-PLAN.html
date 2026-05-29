@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Levelbrook Hotwire Showcase — Build Plan</title>
+<style>
+  :root{
+    --paper:#f7f5f0; --surface:#fff; --ink:#14171a; --soft:#444b52; --faint:#767d85;
+    --hair:#e6e2d8; --accent:#c8402f; --accent-soft:#f5e3df;
+    --mono:"JetBrains Mono",ui-monospace,SFMono-Regular,monospace;
+    --sans:"Inter Tight",ui-sans-serif,system-ui,sans-serif;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--sans);line-height:1.55;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:980px;margin:0 auto;padding:56px 24px 120px}
+  h1{font-size:2.5rem;line-height:1.05;letter-spacing:-.02em;margin:.2em 0 .1em;font-weight:800}
+  h2{font-size:1.5rem;margin:2.4em 0 .5em;letter-spacing:-.01em;border-top:1px solid var(--hair);padding-top:1.4em}
+  h3{font-size:1.075rem;margin:1.6em 0 .3em}
+  p,li{color:var(--soft)} strong{color:var(--ink)}
+  .eyebrow{font-family:var(--mono);font-size:.7rem;letter-spacing:.16em;text-transform:uppercase;color:var(--faint)}
+  code{font-family:var(--mono);font-size:.85em;background:#fff;border:1px solid var(--hair);border-radius:4px;padding:.05em .35em}
+  .accent{color:var(--accent)}
+  .lede{font-size:1.2rem;color:var(--soft);max-width:62ch}
+  table{border-collapse:collapse;width:100%;margin:1em 0;font-size:.9rem}
+  th,td{text-align:left;padding:.55rem .7rem;border-bottom:1px solid var(--hair);vertical-align:top}
+  th{font-family:var(--mono);font-size:.68rem;letter-spacing:.1em;text-transform:uppercase;color:var(--faint);font-weight:600}
+  .dot{display:inline-block;width:.7em;height:.7em;border-radius:50%;margin-right:.4em;vertical-align:middle}
+  .grid{display:grid;gap:14px;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));margin:1.2em 0}
+  .card{background:var(--surface);border:1px solid var(--hair);border-radius:12px;padding:18px}
+  .card h3{margin:0 0 .15em} .card .tag{font-family:var(--mono);font-size:.68rem;color:var(--faint)}
+  .pill{display:inline-block;font-family:var(--mono);font-size:.66rem;border:1px solid var(--hair);border-radius:999px;padding:.1em .55em;margin:.15em .2em 0 0;color:var(--soft)}
+  .fix{border-left:3px solid var(--accent);padding:.2em 0 .2em 1em;margin:1em 0}
+  ul{padding-left:1.2em} li{margin:.25em 0}
+  .mono{font-family:var(--mono);font-size:.82rem}
+  hr{border:0;border-top:1px solid var(--hair);margin:2em 0}
+  .foot{font-family:var(--mono);font-size:.72rem;color:var(--faint);margin-top:3em}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <p class="eyebrow">Levelbrook Consulting · Hotwire practice</p>
+  <h1>The Hotwire Showcase<br><span class="accent">— a portfolio, not a demo.</span></h1>
+  <p class="lede">demo.levelbrook.com stops being one Jira clone. It becomes a <strong>switcher</strong> that
+  opens into a roster of distinct, production-grade Rails&nbsp;8 apps — each one proving a different
+  corner of the modern Hotwire stack, each mined from the 35 reference repos under
+  <code>c2c/docs/hotwire-research/repos/</code>.</p>
+
+  <h2>Why this shape</h2>
+  <p>A single workspace app answers one question well — "can you build a Linear-lite?" A recruiter or
+  Rails lead asks a bigger one: <strong>"can this team reach for the right Hotwire primitive across very
+  different product surfaces?"</strong> The portfolio answers that by showing the <em>same</em> author
+  shipping realtime collaboration, optimistic UI, server-rendered dashboards, spreadsheet-grade inline
+  editing, and permanent-state media — all without a SPA. One themeable shell, one DB, six products.</p>
+
+  <h3>Architecture in one breath</h3>
+  <ul>
+    <li><strong>Root <code>/</code> is the switcher</strong> — a gallery of app cards (name, domain, accent, the
+      Hotwire primitives each one demonstrates). This replaces the old workspace dashboard as the front door.</li>
+    <li><strong>One themeable shell.</strong> A <code>Showcase::APPS</code> registry defines each app's name, tagline,
+      accent color pair, and nav. The layout re-themes instantly by overriding <code>--color-accent</code> on a
+      wrapper and rendering that app's sidebar/topbar. Existing workspace views are untouched because they
+      already read <code>var(--color-accent)</code>.</li>
+    <li><strong>Each app is a real namespace</strong> — its own models, controllers, views, Stimulus controllers,
+      broadcasts, and seed data. Distinct domains so no two cards feel like the same app re-skinned.</li>
+    <li><strong>Shared connective tissue</strong> — toast side-channel, the inline search, View Transitions meta,
+      morph-by-default — lives once in the base layout.</li>
+  </ul>
+
+  <h2>The roster</h2>
+  <div class="grid">
+    <div class="card"><span class="dot" style="background:#c8402f"></span><span class="tag">workspace · ruby</span>
+      <h3>Levelbrook Workspace</h3>
+      <p>Linear/Jira-lite delivery board. The credibility centerpiece — refined, audio removed, search fixed.</p>
+      <span class="pill">SortableJS drag</span><span class="pill">broadcasts_refreshes morph</span>
+      <span class="pill">Turbo Frame drawer</span><span class="pill">instant inline edit</span>
+      <div class="mono" style="margin-top:.6em;color:var(--faint)">repos: rails-trello-clone, fizzy, ultimate_turbo_modal</div>
+    </div>
+    <div class="card"><span class="dot" style="background:#0d9488"></span><span class="tag">cadence · teal</span>
+      <h3>Cadence</h3>
+      <p>Campfire-grade team chat. Presence, typing, append streams, optimistic emoji reactions.</p>
+      <span class="pill">broadcast_append_to</span><span class="pill">Action Cable presence</span>
+      <span class="pill">typing channel</span><span class="pill">optimistic reactions</span>
+      <div class="mono" style="margin-top:.6em;color:var(--faint)">repos: once-campfire, hotwire-chat, hotwire-rails-demo-chat</div>
+    </div>
+    <div class="card"><span class="dot" style="background:#4f46e5"></span><span class="tag">pulse · indigo</span>
+      <h3>Pulse</h3>
+      <p>Live ops / incident dashboard. Server-rendered SVG charts that morph in real time; a deploy job
+      streaming a progress bar; lazy panels.</p>
+      <span class="pill">broadcasts_refreshes morph</span><span class="pill">Active Job → stream</span>
+      <span class="pill">lazy frames</span><span class="pill">View Transitions</span>
+      <div class="mono" style="margin-top:.6em;color:var(--faint)">repos: turbo-rails, turbo-music-drive, turbo_power</div>
+    </div>
+    <div class="card"><span class="dot" style="background:#d97706"></span><span class="tag">ballot · amber</span>
+      <h3>Ballot</h3>
+      <p>Slido-style live polls &amp; Q&amp;A. Tallies morph across every client; votes bump optimistically;
+      questions upvote live.</p>
+      <span class="pill">optimistic UI</span><span class="pill">broadcast morph</span>
+      <span class="pill">CSS-bar charts</span><span class="pill">no charting JS</span>
+      <div class="mono" style="margin-top:.6em;color:var(--faint)">repos: optimistic-ui-hotwire, turbo-rails</div>
+    </div>
+    <div class="card"><span class="dot" style="background:#059669"></span><span class="tag">grid · emerald</span>
+      <h3>Grid</h3>
+      <p>Airtable-lite sheet. Instant per-cell inline edit, filter/sort, and a formula column the server
+      recalculates and morphs.</p>
+      <span class="pill">frame-scoped cell edit</span><span class="pill">server formula recalc</span>
+      <span class="pill">filter/sort frame</span><span class="pill">morph affected cells</span>
+      <div class="mono" style="margin-top:.6em;color:var(--faint)">repos: hottable, modern-datatables</div>
+    </div>
+    <div class="card"><span class="dot" style="background:#7c3aed"></span><span class="tag">spindle · violet</span>
+      <h3>Spindle</h3>
+      <p>Music/notes player — the <em>correct</em> home for the persistent element. Audio is user-initiated
+      and keeps playing across navigation; album→track View Transitions.</p>
+      <span class="pill">data-turbo-permanent</span><span class="pill">View Transitions</span>
+      <span class="pill">lazy track lists</span><span class="pill">Web Audio</span>
+      <div class="mono" style="margin-top:.6em;color:var(--faint)">repos: botcasts, turbo-music-drive</div>
+    </div>
+  </div>
+
+  <h2>The three things that were wrong — and the fixes</h2>
+
+  <div class="fix">
+    <h3>1 · The ambient audio was bolted onto a Jira board</h3>
+    <p>It auto-presented a "Deep Focus — Ambient Loop" on the delivery board, which read as noise on a work
+    tool. <strong>Fix:</strong> delete the persistent player from the workspace entirely
+    (<code>_player.html.erb</code>, <code>player_controller.js</code>, the layout include, the asset). The
+    <em>technique</em> it was demonstrating (<code>data-turbo-permanent</code> surviving navigation) is real
+    and worth showing — so it moves to <strong>Spindle</strong>, a music app where audio is the point and is
+    only ever started by the user. Right technique, right home.</p>
+  </div>
+
+  <div class="fix">
+    <h3>2 · Search opened a "weird modal" and wasn't snappy</h3>
+    <p>Two offenders: the <code>/search</code> page's results linked into a <code>&lt;dialog&gt;</code> modal,
+    and the topbar "Search anything" launched the ⌘K <code>&lt;dialog&gt;</code> palette. <strong>Fix:</strong>
+    an <strong>inline combobox</strong> in the topbar — click the box and a results panel drops down right
+    underneath it (absolutely positioned, not a dialog), debounced to ~120 ms, server-rendered into a Turbo
+    Frame, keyboard-navigable (↑/↓/↵), dismiss on blur/Esc. ⌘K simply focuses that same box. Pattern lifted
+    from <code>hotwire_combobox</code> (its filtering/navigation/selection split) and
+    <code>stimulus-autocomplete</code>. No modal anywhere in the search path.</p>
+  </div>
+
+  <div class="fix">
+    <h3>3 · Lag when clicking the inline-edit inputs</h3>
+    <p>Entering edit mode did a server round-trip: click title → <code>GET /issues/:id/field/title</code> →
+    frame swaps to the form. That network hop is the lag. <strong>Fix:</strong> render display <em>and</em>
+    edit markup in the field frame up front; a tiny Stimulus <code>inline-edit</code> controller toggles to the
+    input <em>instantly</em> on click and focuses it (zero round-trip). Submitting still hits the server, which
+    returns the updated display partial and re-broadcasts — so the server stays authoritative and other clients
+    still morph. Snappy on click, correct on save.</p>
+  </div>
+
+  <h2>Repo → technique map (what we actually mine)</h2>
+  <table>
+    <thead><tr><th>Primitive</th><th>Source repos</th><th>Lands in</th></tr></thead>
+    <tbody>
+      <tr><td>SortableJS drag + persisted position</td><td>rails-trello-clone, fizzy, stimulus-components</td><td>Workspace board</td></tr>
+      <tr><td><code>broadcasts_refreshes</code> + idiomorph</td><td>fizzy, turbo-rails</td><td>Workspace, Pulse, Ballot, Grid</td></tr>
+      <tr><td>Lazy Turbo Frame modal / drawer</td><td>ultimate_turbo_modal, rails-trello-clone</td><td>Workspace issue drawer</td></tr>
+      <tr><td>Append streams (chat/feed)</td><td>once-campfire, hotwire-chat</td><td>Cadence, Pulse activity</td></tr>
+      <tr><td>Presence + typing over Action Cable</td><td>once-campfire</td><td>Cadence, Workspace board</td></tr>
+      <tr><td>Debounced frame search / combobox</td><td>modern-datatables, hottable, hotwire_combobox, stimulus-autocomplete</td><td>Inline search, Grid filters</td></tr>
+      <tr><td>Inline cell / field edit</td><td>hottable, thoughtbot-hotwire-example</td><td>Workspace fields, Grid cells</td></tr>
+      <tr><td>Optimistic UI + reconcile</td><td>optimistic-ui-hotwire</td><td>Ballot votes, Cadence reactions</td></tr>
+      <tr><td>Background job → Turbo Stream progress</td><td>turbo-rails (<code>broadcast_replace_later_to</code>)</td><td>Pulse deploy bar</td></tr>
+      <tr><td><code>data-turbo-permanent</code> media</td><td>botcasts, turbo-music-drive</td><td>Spindle player</td></tr>
+      <tr><td>View Transitions</td><td>turbo-music-drive, turbo</td><td>Spindle, Pulse, Workspace</td></tr>
+      <tr><td>Server-driven stream side-effects (toast/focus)</td><td>turbo_power, tailwindcss-stimulus-components</td><td>Shared toasts</td></tr>
+    </tbody>
+  </table>
+
+  <h2>Build order</h2>
+  <ol>
+    <li><strong>Foundation</strong> — <code>Showcase::APPS</code> registry, gallery switcher at root, themeable shell, base layout (toasts + View Transitions + inline search) — no more per-app sidebar duplication.</li>
+    <li><strong>Workspace fixes</strong> — kill audio, inline search, instant inline edit. (The three explicit asks.)</li>
+    <li><strong>Ballot</strong> — highest visual wow per line of code; pure broadcast-morph + optimistic.</li>
+    <li><strong>Pulse</strong> — morphing charts + a streamed deploy job; proves the job→stream loop.</li>
+    <li><strong>Spindle</strong> — re-homes the persistent player honestly.</li>
+    <li><strong>Grid</strong> — spreadsheet inline edit + formula recalc.</li>
+    <li><strong>Cadence</strong> — promote chat to its own themed app, add optimistic reactions.</li>
+    <li><strong>Verify + deploy</strong> — extend tests, boot-check, <code>kamal deploy</code> to demo.levelbrook.com, confirm every app route 200s over HTTPS.</li>
+  </ol>
+
+  <h3>Non-negotiables carried from the research strategy</h3>
+  <ul>
+    <li>Every app is <strong>progressively enhanced</strong>: works without JS, faster with it.</li>
+    <li><code>broadcasts_refreshes</code> + morph is the default realtime strategy; explicit
+      <code>broadcast_append_to</code> only for append feeds (chat, activity).</li>
+    <li>Each feature shows the <strong>working UI first</strong>, then a one-line "Technique" caption — never an
+      explainer card in place of a working feature.</li>
+    <li>No fabricated metrics, logos, or testimonials. Brand-only, anonymous (per Levelbrook identity rules).</li>
+  </ul>
+
+  <p class="foot">Levelbrook Consulting — Hotwire showcase build plan · single Rails 8 app, six products, one shell.<br>
+  Stack: Rails 8.1 · importmap · Tailwind v4 · Turbo 8 morphing · Solid Queue/Cable/Cache · SQLite · Kamal.</p>
+
+</div>
+</body>
+</html>

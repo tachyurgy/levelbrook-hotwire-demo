@@ -1,0 +1,28 @@
+<%#
+  Inline topbar search combobox. The wrapping form is a real GET /search form
+  (works without JS); the combobox controller enhances it into a debounced
+  drop-down panel anchored under the input — no modal.
+%>
+<%= form_with url: search_path, method: :get,
+      data: { controller: "combobox", combobox_url_value: search_path,
+              action: "keydown.esc->combobox#close" },
+      class: "relative w-52 lg:w-64" do |f| %>
+  <div class="flex items-center gap-2 rounded-md border hairline bg-[var(--color-cool-50)] px-2.5 py-1.5 focus-within:border-[var(--color-accent-soft)] focus-within:ring-2 focus-within:ring-[var(--color-accent-soft)]">
+    <%= ws_icon "search", cls: "h-3.5 w-3.5 text-[var(--color-ink-faint)]" %>
+    <%= f.search_field :q, autocomplete: "off", placeholder: "Search issues…",
+          data: { combobox_target: "input",
+                  action: "focus->combobox#open input->combobox#search " \
+                          "keydown.down->combobox#next keydown.up->combobox#prev " \
+                          "keydown.enter->combobox#select" },
+          class: "w-full bg-transparent text-sm outline-none placeholder:text-[var(--color-ink-faint)]" %>
+  </div>
+
+  <div data-combobox-target="panel"
+       class="absolute right-0 top-full z-40 mt-1.5 hidden max-h-[60vh] w-[26rem] max-w-[85vw] overflow-y-auto rounded-xl border hairline bg-[var(--color-surface)] shadow-xl">
+    <div data-combobox-target="results">
+      <div class="px-4 py-6 text-center text-xs text-[var(--color-ink-faint)]">
+        Type to search across <%= Issue.count %> issues.
+      </div>
+    </div>
+  </div>
+<% end %>

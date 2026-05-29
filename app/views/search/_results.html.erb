@@ -1,17 +1,18 @@
 <% if query.blank? %>
-  <p class="py-12 text-center text-sm text-[var(--color-ink-faint)]">Type to search across <%= Issue.count %> issues.</p>
+  <p class="px-4 py-6 text-center text-xs text-[var(--color-ink-faint)]">Type to search across <%= Issue.count %> issues.</p>
 <% elsif results.empty? %>
-  <p class="py-12 text-center text-sm text-[var(--color-ink-faint)]">No issues match “<%= query %>”.</p>
+  <p class="px-4 py-6 text-center text-xs text-[var(--color-ink-faint)]">No issues match “<%= query %>”.</p>
 <% else %>
-  <p class="eyebrow mb-3"><%= pluralize(results.size, "result") %> for “<%= query %>”</p>
-  <ul class="divide-y hairline overflow-hidden rounded-xl border hairline bg-[var(--color-surface)]">
+  <p class="eyebrow border-b hairline px-4 py-2.5"><%= pluralize(results.size, "result") %> for “<%= query %>”</p>
+  <ul class="divide-y hairline">
     <% results.each do |issue| %>
       <li>
-        <%= link_to issue_path(issue), data: { turbo_frame: "modal" },
-              class: "flex items-center gap-3 px-4 py-3 transition hover:bg-[var(--color-cool-50)]" do %>
-          <span class="issue-key w-16 shrink-0"><%= issue.key %></span>
+        <%= link_to issue_path(issue),
+              data: { turbo_frame: "modal", combobox_target: "item" },
+              class: "flex items-center gap-3 px-4 py-2.5 transition hover:bg-[var(--color-cool-50)] aria-selected:bg-[var(--color-accent-soft)]" do %>
+          <span class="issue-key w-14 shrink-0"><%= issue.key %></span>
           <span class="min-w-0 flex-1 truncate text-sm font-medium"><%= highlight(issue.title, query) %></span>
-          <span class="font-mono text-[11px] text-[var(--color-ink-faint)]"><%= issue.column.name %></span>
+          <span class="hidden font-mono text-[11px] text-[var(--color-ink-faint)] sm:inline"><%= issue.column.name %></span>
           <%= render "shared/avatar", member: issue.assignee, size: :sm %>
         <% end %>
       </li>

@@ -1,10 +1,28 @@
 <%= turbo_frame_tag dom_id(issue, :description) do %>
-  <%= link_to issue_field_path(issue, :description), class: "group block cursor-text rounded-md -mx-1 px-1 py-1 hover:bg-[var(--color-cool-50)]" do %>
-    <% if issue.description.present? %>
-      <p class="whitespace-pre-line text-sm leading-relaxed text-[var(--color-ink-soft)]"><%= issue.description %></p>
-    <% else %>
-      <p class="text-sm italic text-[var(--color-ink-faint)]">No description yet — click to add one.</p>
+  <div data-controller="inline-edit">
+    <%# Display — click toggles the form instantly (JS); GETs it without JS. %>
+    <%= link_to issue_field_path(issue, :description),
+          data: { inline_edit_target: "display", action: "inline-edit#edit" },
+          class: "group block cursor-text rounded-md -mx-1 px-1 py-1 hover:bg-[var(--color-cool-50)]" do %>
+      <% if issue.description.present? %>
+        <p class="whitespace-pre-line text-sm leading-relaxed text-[var(--color-ink-soft)]"><%= issue.description %></p>
+      <% else %>
+        <p class="text-sm italic text-[var(--color-ink-faint)]">No description yet — click to add one.</p>
+      <% end %>
+      <span class="eyebrow opacity-0 transition group-hover:opacity-100">click to edit</span>
     <% end %>
-    <span class="eyebrow opacity-0 transition group-hover:opacity-100">click to edit</span>
-  <% end %>
+
+    <%# Edit form — present up front, hidden until toggled. %>
+    <%= form_with model: issue, url: issue_field_path(issue, :description), method: :patch,
+          data: { inline_edit_target: "form" }, class: "hidden" do |f| %>
+      <div class="space-y-2">
+        <%= f.text_area :description, rows: 4, data: { inline_edit_target: "input" },
+              class: "field-input leading-relaxed" %>
+        <div class="flex gap-2">
+          <%= f.submit "Save", class: "btn btn-accent" %>
+          <button type="button" data-action="inline-edit#cancel" class="btn btn-ghost">Cancel</button>
+        </div>
+      </div>
+    <% end %>
+  </div>
 <% end %>

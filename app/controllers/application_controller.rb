@@ -5,7 +5,29 @@ class ApplicationController < ActionController::Base
   # Changes to the importmap will invalidate the etag for HTML responses
   stale_when_importmap_changes
 
-  helper_method :current_member
+  helper_method :current_member, :current_app
+
+  before_action :assign_current_app
+
+  # The themeable shell re-skins its chrome (accent + nav) per app. We infer the
+  # app from the controller path: namespaced controllers (ballot/, pulse/, …)
+  # resolve from their namespace; chat controllers map to cadence; the gallery
+  # stays chromeless; every other top-level controller is the workspace.
+  def assign_current_app
+    segment = controller_path.split("/").first
+    key =
+      case segment
+      when "ballot", "pulse", "grid", "spindle" then segment.to_sym
+      when "channels", "messages", "reactions"  then :cadence
+      when "gallery"                            then nil
+      else                                           :workspace
+      end
+    @current_app = Showcase.find(key) if key
+  end
+
+  def current_app
+    @current_app
+  end
 
   # Demo identity: pick a stable workspace member for this browser so chat,
   # comments and presence are attributed. Persisted in an encrypted cookie that

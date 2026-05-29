@@ -1,0 +1,377 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Levelbrook Demo Plan</title>
+  <style>
+    :root {
+      --paper: #f7f5f0;
+      --surface: #ffffff;
+      --ink: #14171a;
+      --soft: #4d5560;
+      --faint: #7a818a;
+      --line: #e2ded4;
+      --accent: #c8402f;
+      --good: #147a51;
+      --warn: #9a5b00;
+      --bad: #b42318;
+      --cool: #f1f3f6;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      background: var(--paper);
+      color: var(--ink);
+      font: 15px/1.55 ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    main {
+      width: min(1180px, calc(100vw - 32px));
+      margin: 0 auto;
+      padding: 36px 0 56px;
+    }
+
+    h1, h2, h3 { line-height: 1.12; margin: 0; }
+    h1 { font-size: clamp(34px, 5vw, 58px); letter-spacing: -0.02em; max-width: 900px; }
+    h2 { font-size: 24px; margin-top: 34px; }
+    h3 { font-size: 17px; margin-top: 22px; }
+    p { margin: 9px 0 0; color: var(--soft); }
+    a { color: var(--accent); }
+    code { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.92em; }
+
+    .eyebrow {
+      margin: 0 0 10px;
+      color: var(--faint);
+      font: 700 11px/1.2 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      letter-spacing: 0.13em;
+      text-transform: uppercase;
+    }
+
+    .lede {
+      max-width: 860px;
+      font-size: 18px;
+      color: var(--soft);
+    }
+
+    .grid {
+      display: grid;
+      gap: 14px;
+    }
+
+    .grid.cols-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .grid.cols-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 18px;
+    }
+
+    .band {
+      margin-top: 22px;
+      border: 1px solid var(--line);
+      background: var(--surface);
+      border-radius: 8px;
+      overflow: hidden;
+    }
+
+    .band > .row {
+      display: grid;
+      grid-template-columns: 210px 1fr;
+      gap: 18px;
+      padding: 16px 18px;
+      border-top: 1px solid var(--line);
+    }
+
+    .band > .row:first-child { border-top: 0; }
+
+    .score {
+      display: inline-flex;
+      align-items: center;
+      min-width: 44px;
+      justify-content: center;
+      border-radius: 999px;
+      padding: 3px 8px;
+      background: var(--cool);
+      color: var(--ink);
+      font: 700 12px/1.2 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    }
+
+    .good { color: var(--good); }
+    .warn { color: var(--warn); }
+    .bad { color: var(--bad); }
+
+    ul, ol { margin: 10px 0 0; padding-left: 20px; }
+    li { margin: 7px 0; color: var(--soft); }
+    strong { color: var(--ink); }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 12px;
+      overflow: hidden;
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+    }
+
+    th, td {
+      padding: 11px 12px;
+      border-top: 1px solid var(--line);
+      text-align: left;
+      vertical-align: top;
+    }
+
+    th {
+      border-top: 0;
+      background: var(--cool);
+      color: var(--ink);
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+
+    @media (max-width: 760px) {
+      .grid.cols-2, .grid.cols-3 { grid-template-columns: 1fr; }
+      .band > .row { grid-template-columns: 1fr; }
+      table { display: block; overflow-x: auto; }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <p class="eyebrow">Audit and build plan</p>
+    <h1>Levelbrook Hotwire Demo Plan</h1>
+    <p class="lede">
+      The demo should be a credible consulting portfolio piece: a real delivery workspace that proves modern Hotwire skill in under 90 seconds, then holds up when a Rails lead opens the code.
+    </p>
+
+    <section class="grid cols-3" style="margin-top: 26px">
+      <div class="card">
+        <p class="eyebrow">Current status</p>
+        <h3>Promising, not hire-ready</h3>
+        <p>The app has the right product frame and many right primitives, but a few proof gaps and stale docs weaken the story.</p>
+      </div>
+      <div class="card">
+        <p class="eyebrow">Test run</p>
+        <h3 class="good">86 tests passing</h3>
+        <p><code>bin/rails test</code> completed with 237 assertions and no failures on May 29, 2026.</p>
+      </div>
+      <div class="card">
+        <p class="eyebrow">North star</p>
+        <h3>Senior Rails delivery workspace</h3>
+        <p>Not a demo gallery. A Linear/Basecamp-style app for boards, issue detail, chat, activity, search, intake, and polish.</p>
+      </div>
+    </section>
+
+    <h2>Executive Audit</h2>
+    <div class="band">
+      <div class="row">
+        <div><strong>What already works</strong></div>
+        <div>
+          <ul>
+            <li>Modern Rails 8 app using Hotwire, importmap, Propshaft, Tailwind, Solid Cable, Solid Queue, and Solid Cache.</li>
+            <li>Coherent workspace app: dashboard, projects, kanban board, issue modal, chat, search, activity feed, command palette, and intake form.</li>
+            <li>Strong Hotwire coverage: <code>broadcasts_refreshes</code>, model broadcasts, lazy frames, frame-scoped inline edit, raw Action Cable, typing, presence, permanent player, and View Transition meta tags.</li>
+            <li>Controller code is generally small and lifecycle-aware. Sortable, chat observer, debounce, typing, presence, player, toast, and modal controllers all clean up timers/subscriptions/observers.</li>
+          </ul>
+        </div>
+      </div>
+      <div class="row">
+        <div><strong>What blocks it from being impressive</strong></div>
+        <div>
+          <ul>
+            <li><strong class="bad">README is stale.</strong> It describes old <code>/board</code> and <code>/story</code> demos, but the app now exposes <code>/projects</code>, <code>/channels</code>, <code>/search</code>, <code>/activities</code>, and <code>/signups</code>.</li>
+            <li><strong class="bad">The core realtime board proof may be incomplete.</strong> Same-column reorder uses <code>update_column</code> and may not touch the project, so other connected clients can miss the morph refresh.</li>
+            <li><strong class="warn">The app explains techniques too early.</strong> Captions are useful, but the demo needs visible before/after proof: embedded second client, seeded guided flow, and obvious live updates.</li>
+            <li><strong class="warn">Some modules are present but underused.</strong> Toast helper exists but is not visibly triggered. Activity feed is synthetic and cached, not live. Persistent player proves state, but it needs stronger purpose or a clearer exhibit.</li>
+            <li><strong class="warn">Presence is weak as a sales proof.</strong> Default identity means many browsers can appear as the same person. It needs a quick identity switcher or demo-client labels.</li>
+          </ul>
+        </div>
+      </div>
+      <div class="row">
+        <div><strong>Verdict</strong></div>
+        <div>
+          <p>
+            The app is much closer to a good Hotwire showcase than the README suggests. The work now is not to add ten more disconnected tricks. The work is to tighten the proof path, fix the realtime correctness gaps, and make every advanced feature visible in a coherent client story.
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <h2>Comparison Against The Hotwire Research</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>Pattern</th>
+          <th>Best reference</th>
+          <th>Current demo</th>
+          <th>Score</th>
+          <th>Plan</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Morph-first realtime board</td>
+          <td><code>fizzy</code>, <code>turbo-rails</code></td>
+          <td>Project declares <code>broadcasts_refreshes</code>; board subscribes with <code>turbo_stream_from @project</code>; drag uses SortableJS.</td>
+          <td><span class="score warn">3/5</span></td>
+          <td>Guarantee every move touches/broadcasts the project, especially same-column reorder. Add system test with two sessions or cable broadcast assertion.</td>
+        </tr>
+        <tr>
+          <td>Surgical append streams</td>
+          <td><code>once-campfire</code>, official chat demo</td>
+          <td>Messages append to <code>#messages</code>; comments append to issue comments target.</td>
+          <td><span class="score good">4/5</span></td>
+          <td>Add visible broadcast proof in a split-screen route and make activity append live instead of only synthetic pagination.</td>
+        </tr>
+        <tr>
+          <td>Presence and typing</td>
+          <td><code>once-campfire</code>, <code>hotwire-chat</code></td>
+          <td>Raw Action Cable channels with heartbeat, visibility handling, and unsubscribe on disconnect.</td>
+          <td><span class="score good">4/5</span></td>
+          <td>Add identity switcher and a "demo second client" mode so presence is legible in one browser.</td>
+        </tr>
+        <tr>
+          <td>Lazy frame modal/drawer</td>
+          <td><code>ultimate_turbo_modal</code>, <code>fizzy</code></td>
+          <td>Issue details load into a permanent modal frame; fields are frame-scoped inline edits.</td>
+          <td><span class="score good">4/5</span></td>
+          <td>Upgrade from modal to right-side issue drawer for a more Linear-like product feel; keep full-page fallback.</td>
+        </tr>
+        <tr>
+          <td>Live search/filter</td>
+          <td><code>modern-datatables</code>, <code>hottable</code></td>
+          <td>Debounced GET form renders server results into <code>#search_results</code> with URL advancement.</td>
+          <td><span class="score good">4/5</span></td>
+          <td>Add filters, sort, assignee chips, and highlighted snippets so it feels like real workspace search.</td>
+        </tr>
+        <tr>
+          <td>Infinite scroll/lazy panels</td>
+          <td><code>turbo-music-drive</code>, thoughtbot examples</td>
+          <td>Activity pages chain lazy <code>turbo_frame_tag</code> requests.</td>
+          <td><span class="score warn">3/5</span></td>
+          <td>Make activity a persisted/broadcast model or live stream assembled from domain events.</td>
+        </tr>
+        <tr>
+          <td>Permanent elements</td>
+          <td><code>turbo-music-drive</code>, <code>botcasts</code></td>
+          <td>Persistent player and command palette are <code>data-turbo-permanent</code>.</td>
+          <td><span class="score good">4/5</span></td>
+          <td>Make the player relevant: call it "client call ambient mode" or replace with a persistent deployment/progress drawer if audio feels gimmicky.</td>
+        </tr>
+        <tr>
+          <td>View Transitions</td>
+          <td><code>turbo-music-drive</code></td>
+          <td>Meta tag and card <code>view-transition-name</code> are present.</td>
+          <td><span class="score warn">3/5</span></td>
+          <td>Use shared-element transitions from board card to drawer/detail and feature-detect unsupported browsers.</td>
+        </tr>
+        <tr>
+          <td>Hotwire Native bridge</td>
+          <td><code>fizzy</code>, official Hotwire Native demo</td>
+          <td>Seed data mentions Native, but no bridge/path configuration exists.</td>
+          <td><span class="score bad">1/5</span></td>
+          <td>Add a small <code>/native-preview</code> doc/screen and bridge-controller folder only if you can demo it honestly.</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h2>Hiring Demo Story</h2>
+    <p>The demo must answer one question: "Can Levelbrook build modern app UI in Rails without defaulting to React?" The flow should be scripted and visible:</p>
+    <ol>
+      <li><strong>Open the dashboard.</strong> It looks like a real delivery workspace, not a marketing page.</li>
+      <li><strong>Open the board with a built-in second-client preview.</strong> Drag a card and watch the preview morph in place.</li>
+      <li><strong>Open an issue drawer.</strong> Edit title/status/assignee through Turbo Frames and add a comment that streams live.</li>
+      <li><strong>Open team room.</strong> Send a message, see append-stream behavior, presence, and typing over raw Action Cable.</li>
+      <li><strong>Use command palette and search.</strong> Show server-rendered results, keyboard nav, URL/history correctness, and no client search index.</li>
+      <li><strong>Use intake validation.</strong> Blur invalid fields and show server-authoritative field errors streamed back.</li>
+      <li><strong>Finish with code receipts.</strong> Link to a short "How it works" page that maps each feature to files and Hotwire primitives.</li>
+    </ol>
+
+    <h2>Priority Build Plan</h2>
+    <h3>Phase 0: Correct the truth, 0.5 day</h3>
+    <ul>
+      <li>Rewrite <code>README.md</code> to describe the current Levelbrook Delivery Workspace, not the old board/story app.</li>
+      <li>Add a <code>docs/hotwire-proof-map.md</code> linking each visible feature to files, tests, and referenced repo patterns.</li>
+      <li>Rename routes/copy consistently: "Levelbrook", not mixed "Lebrook"/"Levelbrook". Keep this file as the planning artifact if the misspelling was intentional shorthand.</li>
+    </ul>
+
+    <h3>Phase 1: Fix the core board proof, 1 day</h3>
+    <ul>
+      <li>Make <code>Issues::PositionsController#update</code> touch or broadcast the project after every reorder, including same-column reorders.</li>
+      <li>Replace <code>update_column</code> with a deliberate persistence path that keeps callbacks/broadcast intent explicit, or call <code>issue.project.touch!</code> once at the end of the transaction.</li>
+      <li>Add tests that verify a same-column reorder causes the project refresh broadcast path. If system tests are practical, add a two-session board sync test.</li>
+      <li>Add WIP-limit enforcement or remove the seeded issue promising it. If built, reject the move, stream a toast, and let morph reconcile the card position.</li>
+    </ul>
+
+    <h3>Phase 2: Make the demo self-proving, 1-2 days</h3>
+    <ul>
+      <li>Add <code>/demo</code> or make project show include a collapsible second-client preview iframe of the same board.</li>
+      <li>Add a guided proof rail with 5 concrete actions: drag card, open drawer, edit field, send comment, reset board.</li>
+      <li>Fire real toasts from reset, WIP rejection, successful inline edit, and signup success so the stream side-channel is not just unused infrastructure.</li>
+      <li>Add identity switching in the chat sidebar so two browsers can appear as different people without private browsing tricks.</li>
+    </ul>
+
+    <h3>Phase 3: Turn features into a coherent product, 2-3 days</h3>
+    <ul>
+      <li>Upgrade issue modal to a right-side drawer while preserving the lazy Turbo Frame and full-page fallback.</li>
+      <li>Make activity persisted or event-backed. Issue moves, comments, and messages should create activity entries that stream-prepend live, then paginate by lazy frames.</li>
+      <li>Improve search into workspace search: assignee filter, status filter, priority filter, sort, highlighted snippets, and frame-scoped pagination.</li>
+      <li>Add a server-driven background job exhibit: "Generate client status report" streams progress through Solid Queue and Turbo Streams, then exposes a download/result.</li>
+    </ul>
+
+    <h3>Phase 4: Add senior-level differentiators, 2-4 days</h3>
+    <ul>
+      <li>Add shared-element View Transitions from issue card to drawer/detail. Keep reduced-motion handling and unsupported-browser fallback.</li>
+      <li>Add optimistic UI on one small action, such as starring an issue or acknowledging an activity item, then reconcile via morph.</li>
+      <li>Add presence-aware edit locks on issue fields: "Ada is editing title" appears, releases on disconnect, and survives refresh correctly.</li>
+      <li>Optionally add a small Hotwire Native bridge exhibit only if it can be honestly demonstrated with path configuration and bridge controllers.</li>
+    </ul>
+
+    <h2>Acceptance Criteria</h2>
+    <div class="grid cols-2">
+      <div class="card">
+        <h3>Visitor proof</h3>
+        <ul>
+          <li>A prospect can see realtime board sync in one browser within 15 seconds.</li>
+          <li>Every feature has a believable workspace reason, not just a technique caption.</li>
+          <li>No dead promises in seeded data or README.</li>
+          <li>Mobile and desktop layouts remain usable for board, chat, search, and drawer.</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3>Engineer proof</h3>
+        <ul>
+          <li>Tests cover same-column reorder broadcast, message/comment streams, field validation, and search behavior.</li>
+          <li>Stimulus controllers use targets/values/classes, clean up in <code>disconnect()</code>, and avoid page-controller sprawl.</li>
+          <li>Streams are scoped to records, not global channels for private data.</li>
+          <li>App can be deployed and seeded from documented commands.</li>
+        </ul>
+      </div>
+    </div>
+
+    <h2>Immediate Fix List</h2>
+    <ol>
+      <li>Fix same-column reorder broadcast/touch behavior.</li>
+      <li>Rewrite README around the current workspace.</li>
+      <li>Add built-in second-client board preview.</li>
+      <li>Make toast streams visible through real user actions.</li>
+      <li>Add identity switcher for chat/presence demos.</li>
+      <li>Promote activity from synthetic cached feed to live event stream.</li>
+      <li>Add a concise code-receipts page mapping each demo action to files.</li>
+    </ol>
+
+    <h2>Source Material Used</h2>
+    <ul>
+      <li>Current app: <code>levelbrook-hotwire-demo</code> models, controllers, views, Stimulus controllers, routes, README, and tests.</li>
+      <li>Local plan/research: <code>c2c/docs/hotwire-research/PATTERNS.md</code>, <code>FEATURE-LIBRARY.md</code>, <code>CATALOG.md</code>, and <code>hotw-rei-stragey.md</code>.</li>
+      <li>Local cloned references: <code>once-campfire</code>, <code>fizzy</code>, <code>turbo-rails</code>, <code>turbo-music-drive</code>, <code>modern-datatables</code>, <code>ultimate_turbo_modal</code>, <code>hotwire-chat</code>, and related examples listed in the catalog.</li>
+    </ul>
+  </main>
+</body>
+</html>
