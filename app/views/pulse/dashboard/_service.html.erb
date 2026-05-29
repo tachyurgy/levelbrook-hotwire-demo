@@ -1,0 +1,26 @@
+<% spark = sparkline(service.sample_points) %>
+<% st = service.style %>
+<div class="rounded-xl border hairline bg-[var(--color-surface)] p-4">
+  <div class="flex items-center justify-between">
+    <div class="flex items-center gap-2">
+      <span class="h-2 w-2 rounded-full <%= st[:dot] %>"></span>
+      <h3 class="text-[15px] font-bold tracking-tight"><%= service.name %></h3>
+    </div>
+    <span class="font-mono text-[10px] font-semibold uppercase tracking-wider <%= st[:text] %>"><%= st[:label] %></span>
+  </div>
+
+  <div class="mt-3">
+    <svg viewBox="0 0 <%= spark[:w] %> <%= spark[:h] %>" class="h-12 w-full" preserveAspectRatio="none">
+      <% if spark[:area].present? %>
+        <polygon points="<%= spark[:area] %>" fill="var(--color-accent-soft)" opacity="0.7"></polygon>
+        <polyline points="<%= spark[:line] %>" fill="none" stroke="var(--color-accent)" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"></polyline>
+      <% end %>
+    </svg>
+  </div>
+
+  <div class="mt-2 grid grid-cols-3 gap-2 font-mono text-[11px]">
+    <div><span class="block text-[var(--color-ink-faint)]">p95</span><span class="font-semibold tabular-nums"><%= service.latency_ms %>ms</span></div>
+    <div><span class="block text-[var(--color-ink-faint)]">err</span><span class="font-semibold tabular-nums"><%= service.error_rate %>%</span></div>
+    <div><span class="block text-[var(--color-ink-faint)]">rps</span><span class="font-semibold tabular-nums"><%= service.throughput %></span></div>
+  </div>
+</div>

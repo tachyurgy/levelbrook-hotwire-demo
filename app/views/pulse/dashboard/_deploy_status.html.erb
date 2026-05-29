@@ -1,0 +1,21 @@
+<%#
+  The streamed deploy target. The DeployJob broadcast_replaces this partial at
+  intervals; locals: service, pct, done, active.
+%>
+<div id="deploy_status">
+  <% if active %>
+    <div class="flex items-center justify-between text-sm">
+      <span class="font-medium">Deploying <span class="font-mono"><%= service.name %></span>…</span>
+      <span class="font-mono tabular-nums text-[var(--color-ink-faint)]"><%= pct %>%</span>
+    </div>
+    <div class="mt-2 h-2 overflow-hidden rounded-full bg-[var(--color-cool-100)]">
+      <div class="h-full rounded-full transition-[width] duration-300 ease-out" style="width: <%= pct %>%; background: var(--color-accent)"></div>
+    </div>
+  <% elsif done %>
+    <div class="flex items-center gap-2 text-sm font-medium text-emerald-600">
+      <span>✓</span><span>Deployed <span class="font-mono"><%= service&.name %></span> — healthy.</span>
+    </div>
+  <% else %>
+    <p class="font-mono text-xs text-[var(--color-ink-faint)]">No deploy running. Pick a service and run one — open a second tab to watch the bar stream.</p>
+  <% end %>
+</div>

@@ -1,0 +1,84 @@
+<% content_for :title, "Pulse — Live Ops" %>
+
+<%# Subscribe so jobs/incident changes morph the whole board live. %>
+<%= turbo_stream_from Pulse::STREAM %>
+
+<div class="mx-auto max-w-6xl px-5 py-8">
+  <div class="flex flex-wrap items-end justify-between gap-4">
+    <div>
+      <p class="eyebrow">Live operations · server-rendered, morphing</p>
+      <h1 class="mt-1 font-display text-3xl font-extrabold tracking-tight">Service health</h1>
+      <p class="mt-1.5 text-sm text-[var(--color-ink-soft)]">
+        Charts and tallies are rendered on the server and morphed in as events arrive — no charting library, no client polling.
+      </p>
+    </div>
+    <%= button_to "Simulate traffic", pulse_simulate_path, class: "btn btn-ghost" %>
+  </div>
+
+  <%# --- Aggregate tiles ------------------------------------------------ %>
+  <% healthy = @services.reject { |s| s.status == "down" } %>
+  <% avg_latency = healthy.any? ? (healthy.sum(&:latency_ms) / healthy.size) : 0 %>
+  <% tiles = [
+       ["Throughput",  "#{@services.sum(&:throughput)} rps", "across #{@services.size} services"],
+       ["Avg latency", "#{avg_latency} ms", "healthy services, p95"],
+       ["Peak error",  "#{@services.map(&:error_rate).max}%", "worst service"],
+       ["Open incidents", @incidents.reject(&:resolved?).size, "needs attention"]
+     ] %>
+  <div class="mt-6 grid grid-cols-2 gap-3 lg:grid-cols-4">
+    <% tiles.each do |label, value, sub| %>
+      <div class="rounded-xl border hairline bg-[var(--color-surface)] p-4">
+        <p class="eyebrow"><%= label %></p>
+        <p class="mt-2 font-display text-3xl font-extrabold leading-none tracking-tight tabular-nums"><%= value %></p>
+        <p class="mt-1.5 font-mono text-[11px] text-[var(--color-ink-faint)]"><%= sub %></p>
+      </div>
+    <% end %>
+  </div>
+
+  <%# --- Deploy widget (job -> streamed progress bar) ------------------- %>
+  <div class="mt-6 rounded-xl border hairline bg-[var(--color-surface)] p-5">
+    <div class="flex flex-wrap items-center justify-between gap-3">
+      <div>
+        <p class="eyebrow">Deploy a service</p>
+        <p class="mt-0.5 text-sm text-[var(--color-ink-soft)]">An Active Job streams progress over Action Cable — watch it in a second tab.</p>
+      </div>
+      <%= form_with url: pulse_deploys_path, method: :post, class: "flex items-center gap-2" do |f| %>
+        <%= f.select :service_id, @services_for_deploy.map { |s| [ s.name, s.id ] }, {},
+              class: "field-input py-1.5 cursor-pointer" %>
+        <%= f.submit "Run deploy", class: "btn btn-accent" %>
+      <% end %>
+    </div>
+    <div class="mt-4">
+      <%= render "pulse/dashboard/deploy_status", service: nil, pct: nil, done: false, active: false %>
+    </div>
+  </div>
+
+  <%# --- Service grid + incidents -------------------------------------- %>
+  <div class="mt-6 grid gap-4 lg:grid-cols-3">
+    <div class="lg:col-span-2">
+      <p class="eyebrow mb-3">Services</p>
+      <div class="grid gap-3 sm:grid-cols-2">
+        <% @services.each do |service| %>
+          <%= render "pulse/dashboard/service", service: service %>
+        <% end %>
+      </div>
+      <%= technique_caption "Each card is a server-rendered SVG sparkline. broadcasts_refreshes morphs new samples in — the line redraws, the page doesn't reload." %>
+    </div>
+
+    <div>
+      <p class="eyebrow mb-3">Incidents</p>
+      <div class="space-y-2.5">
+        <% @incidents.each do |incident| %>
+          <%= render "pulse/dashboard/incident", incident: incident %>
+        <% end %>
+      </div>
+    </div>
+  </div>
+
+  <%# --- Lazy-loaded events panel -------------------------------------- %>
+  <div class="mt-6">
+    <p class="eyebrow mb-3">Recent events · lazy Turbo Frame</p>
+    <%= turbo_frame_tag :pulse_events, src: pulse_panel_path("events"), loading: :lazy do %>
+      <div class="rounded-xl border hairline bg-[var(--color-surface)] p-5 text-sm text-[var(--color-ink-faint)]">Loading events…</div>
+    <% end %>
+  </div>
+</div>

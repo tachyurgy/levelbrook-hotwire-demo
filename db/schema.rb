@@ -10,7 +10,46 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_05_28_200001) do
+ActiveRecord::Schema[8.1].define(version: 2026_05_29_000002) do
+  create_table "ballot_options", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.string "label", null: false
+    t.integer "poll_id", null: false
+    t.integer "position", default: 0, null: false
+    t.datetime "updated_at", null: false
+    t.integer "votes_count", default: 0, null: false
+    t.index ["poll_id"], name: "index_ballot_options_on_poll_id"
+  end
+
+  create_table "ballot_polls", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.integer "position", default: 0, null: false
+    t.string "question", null: false
+    t.integer "room_id", null: false
+    t.datetime "updated_at", null: false
+    t.index ["room_id"], name: "index_ballot_polls_on_room_id"
+  end
+
+  create_table "ballot_questions", force: :cascade do |t|
+    t.string "author", null: false
+    t.text "body", null: false
+    t.datetime "created_at", null: false
+    t.integer "room_id", null: false
+    t.datetime "updated_at", null: false
+    t.integer "upvotes_count", default: 0, null: false
+    t.index ["room_id", "upvotes_count"], name: "index_ballot_questions_on_room_id_and_upvotes_count"
+    t.index ["room_id"], name: "index_ballot_questions_on_room_id"
+  end
+
+  create_table "ballot_rooms", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.string "name", null: false
+    t.string "slug", null: false
+    t.string "subtitle"
+    t.datetime "updated_at", null: false
+    t.index ["slug"], name: "index_ballot_rooms_on_slug", unique: true
+  end
+
   create_table "channels", force: :cascade do |t|
     t.datetime "created_at", null: false
     t.string "name", null: false
@@ -88,6 +127,34 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_28_200001) do
     t.index ["slug"], name: "index_projects_on_slug", unique: true
   end
 
+  create_table "pulse_incidents", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.integer "service_id"
+    t.string "severity", default: "sev3", null: false
+    t.datetime "started_at", null: false
+    t.string "status", default: "open", null: false
+    t.string "title", null: false
+    t.datetime "updated_at", null: false
+    t.index ["service_id"], name: "index_pulse_incidents_on_service_id"
+  end
+
+  create_table "pulse_services", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.float "error_rate", default: 0.2, null: false
+    t.integer "latency_ms", default: 80, null: false
+    t.string "name", null: false
+    t.integer "position", default: 0, null: false
+    t.text "samples", default: "[]", null: false
+    t.string "slug", null: false
+    t.string "status", default: "healthy", null: false
+    t.integer "throughput", default: 1200, null: false
+    t.datetime "updated_at", null: false
+    t.index ["slug"], name: "index_pulse_services_on_slug", unique: true
+  end
+
+  add_foreign_key "ballot_options", "ballot_polls", column: "poll_id"
+  add_foreign_key "ballot_polls", "ballot_rooms", column: "room_id"
+  add_foreign_key "ballot_questions", "ballot_rooms", column: "room_id"
   add_foreign_key "columns", "projects"
   add_foreign_key "comments", "issues"
   add_foreign_key "comments", "members"
@@ -95,4 +162,5 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_28_200001) do
   add_foreign_key "issues", "members", column: "assignee_id"
   add_foreign_key "messages", "channels"
   add_foreign_key "messages", "members"
+  add_foreign_key "pulse_incidents", "pulse_services", column: "service_id"
 end

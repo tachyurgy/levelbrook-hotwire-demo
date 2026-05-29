@@ -61,7 +61,8 @@ Rails.application.routes.draw do
   # ============================ Pulse (ops dashboard) =====================
   namespace :pulse do
     root "dashboard#index"
-    get "panels/:panel", to: "dashboard#panel", as: :panel
+    get  "panels/:panel", to: "dashboard#panel", as: :panel
+    post "simulate", to: "dashboard#simulate", as: :simulate
     resources :deploys, only: [ :create ]
     resources :incidents, only: [ :update ]
   end
