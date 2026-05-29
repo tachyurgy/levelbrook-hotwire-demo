@@ -1,0 +1,10 @@
+<% content_for :title, "Create a workspace — Levelbrook" %>
+<div class="mx-auto max-w-lg px-5 py-12">
+  <p class="eyebrow">Live form validation · server-rendered, per-field</p>
+  <h1 class="font-display text-3xl font-bold tracking-tight">Create a workspace</h1>
+  <%= technique_caption "Each field validates on blur via a Turbo Stream that re-renders just that field with the real model errors — one source of validation truth, shared with the server submit." %>
+
+  <div id="signup_form" class="mt-8">
+    <%= render "signups/form", signup: @signup %>
+  </div>
+</div>

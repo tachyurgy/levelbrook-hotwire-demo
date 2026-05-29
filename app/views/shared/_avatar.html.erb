@@ -1,0 +1,23 @@
+<%#
+  Initials avatar. locals: member, size (:sm | :md | :lg, default :md)
+%>
+<% size ||= :md %>
+<% dims = { sm: "h-6 w-6 text-[9px]", md: "h-7 w-7 text-[10px]", lg: "h-9 w-9 text-xs" }.fetch(size) %>
+<% palette = {
+     "indigo"  => "bg-indigo-100 text-indigo-700",
+     "emerald" => "bg-emerald-100 text-emerald-700",
+     "amber"   => "bg-amber-100 text-amber-800",
+     "rose"    => "bg-rose-100 text-rose-700",
+     "sky"     => "bg-sky-100 text-sky-700",
+     "violet"  => "bg-violet-100 text-violet-700",
+     "teal"    => "bg-teal-100 text-teal-700",
+     "orange"  => "bg-orange-100 text-orange-700"
+   } %>
+<% if member %>
+  <span title="<%= member.name %>"
+        class="grid shrink-0 place-items-center rounded-full font-mono font-semibold ring-1 ring-black/5 <%= dims %> <%= palette.fetch(member.color, 'bg-gray-200 text-gray-700') %>">
+    <%= member.initials %>
+  </span>
+<% else %>
+  <span class="grid shrink-0 place-items-center rounded-full border border-dashed hairline font-mono text-[var(--color-ink-faint)] <%= dims %>">–</span>
+<% end %>

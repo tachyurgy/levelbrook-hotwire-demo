@@ -1,0 +1,8 @@
+<%= turbo_frame_tag "new_message" do %>
+  <%= form_with model: [channel, Message.new], url: channel_messages_path(channel), data: { controller: "form" }, class: "flex items-end gap-2" do |f| %>
+    <%= f.text_area :body, rows: 1, placeholder: "Message ##{channel.name}…", required: true,
+          class: "field-input resize-none py-2.5",
+          data: { action: "input->typing#changed keydown.enter->form#submitOnEnter", typing_target: "input" } %>
+    <%= f.submit "Send", class: "btn btn-accent shrink-0" %>
+  <% end %>
+<% end %>

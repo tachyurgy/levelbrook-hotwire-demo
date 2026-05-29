@@ -1,0 +1,21 @@
+<% content_for :title, "Search — Levelbrook" %>
+<div class="mx-auto max-w-3xl px-5 py-10">
+  <p class="eyebrow">Live search · debounced Turbo Frame + advance</p>
+  <h1 class="font-display text-3xl font-bold tracking-tight">Search issues</h1>
+  <%= technique_caption "A form that auto-submits as you type into a frame; the URL advances so results are shareable and back-button-able. Works without JS too." %>
+
+  <%# The form auto-submits (debounced) into #search_results; advance keeps the URL synced. %>
+  <%= form_with url: search_path, method: :get, data: { controller: "debounce", turbo_frame: "search_results", turbo_action: "advance" }, class: "mt-6" do |f| %>
+    <div class="relative">
+      <svg class="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-[var(--color-ink-faint)]" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="9" cy="9" r="6"/><path d="m17 17-3.5-3.5"/></svg>
+      <%= f.search_field :q, value: @query, autofocus: true, autocomplete: "off",
+            placeholder: "Search titles and descriptions…",
+            class: "field-input pl-10 py-3 text-base",
+            data: { action: "input->debounce#submit" } %>
+    </div>
+  <% end %>
+
+  <%= turbo_frame_tag "search_results", class: "mt-6 block" do %>
+    <%= render "search/results", results: @results, query: @query %>
+  <% end %>
+</div>

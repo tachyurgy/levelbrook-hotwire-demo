@@ -1,0 +1,15 @@
+<%#
+  Lazy Turbo Frame modal. A link with data-turbo-frame="modal" loads its
+  response into #modal; the modal controller shows the <dialog> when content
+  arrives and closes on ESC / backdrop / a turbo-stream that empties the frame.
+%>
+<div data-controller="modal"
+     data-action="keydown.esc@window->modal#close turbo:frame-load->modal#opened"
+     data-turbo-permanent
+     id="modal_wrapper">
+  <dialog data-modal-target="dialog"
+          data-action="click->modal#backdropClose close->modal#dismiss"
+          class="m-auto w-full max-w-2xl rounded-xl border hairline bg-[var(--color-surface)] p-0 shadow-2xl backdrop:bg-black/40 backdrop:backdrop-blur-sm">
+    <%= turbo_frame_tag "modal", class: "block" %>
+  </dialog>
+</div>

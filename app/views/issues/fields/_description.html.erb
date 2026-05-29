@@ -1,0 +1,10 @@
+<%= turbo_frame_tag dom_id(issue, :description) do %>
+  <%= link_to issue_field_path(issue, :description), class: "group block cursor-text rounded-md -mx-1 px-1 py-1 hover:bg-[var(--color-cool-50)]" do %>
+    <% if issue.description.present? %>
+      <p class="whitespace-pre-line text-sm leading-relaxed text-[var(--color-ink-soft)]"><%= issue.description %></p>
+    <% else %>
+      <p class="text-sm italic text-[var(--color-ink-faint)]">No description yet — click to add one.</p>
+    <% end %>
+    <span class="eyebrow opacity-0 transition group-hover:opacity-100">click to edit</span>
+  <% end %>
+<% end %>

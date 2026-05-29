@@ -1,0 +1,22 @@
+<%= turbo_frame_tag "command_results", data: { command_palette_target: "results" } do %>
+  <% if commands.empty? %>
+    <div class="px-4 py-8 text-center text-sm text-[var(--color-ink-faint)]">No matches<% if query.present? %> for “<%= query %>”<% end %>.</div>
+  <% else %>
+    <ul class="max-h-80 overflow-y-auto py-1.5">
+      <% commands.each_with_index do |command, index| %>
+        <li>
+          <a href="<%= command[:url] %>"
+             data-command-palette-target="item"
+             data-action="mouseenter->command-palette#hover click->command-palette#go"
+             data-index="<%= index %>"
+             class="flex items-center gap-3 px-3 py-2 text-sm aria-selected:bg-[var(--color-cool-100)]"
+             <%= "aria-selected=true" if index.zero? %>>
+            <span class="kbd shrink-0 w-16 justify-center"><%= command[:kind] %></span>
+            <span class="min-w-0 flex-1 truncate font-medium"><%= command[:title] %></span>
+            <span class="shrink-0 font-mono text-[11px] text-[var(--color-ink-faint)]"><%= command[:subtitle] %></span>
+          </a>
+        </li>
+      <% end %>
+    </ul>
+  <% end %>
+<% end %>

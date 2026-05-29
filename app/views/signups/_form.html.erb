@@ -1,0 +1,12 @@
+<%= form_with model: signup, url: signups_path, scope: :signup,
+      data: { controller: "validate", validate_url_value: validate_signups_path },
+      class: "space-y-5 rounded-xl border hairline bg-[var(--color-surface)] p-6" do |f| %>
+
+  <% %w[workspace_name subdomain email seats].each do |field| %>
+    <%= render "signups/field", signup: signup, field: field %>
+  <% end %>
+
+  <div class="pt-2">
+    <%= f.submit "Create workspace", class: "btn btn-accent w-full" %>
+  </div>
+<% end %>

@@ -1,0 +1,10 @@
+<%= turbo_frame_tag "new_comment_#{issue.id}" do %>
+  <%= form_with model: [issue, Comment.new], url: issue_comments_path(issue), data: { controller: "form" }, class: "flex items-end gap-2" do |f| %>
+    <div class="flex-1">
+      <%= f.text_area :body, rows: 1, placeholder: "Add a comment…", required: true,
+            class: "field-input resize-none py-2",
+            data: { action: "keydown.enter->form#submitOnEnter" } %>
+    </div>
+    <%= f.submit "Send", class: "btn btn-accent shrink-0" %>
+  <% end %>
+<% end %>

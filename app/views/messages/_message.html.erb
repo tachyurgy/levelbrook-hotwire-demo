@@ -1,0 +1,10 @@
+<div id="<%= dom_id(message) %>" class="flex items-start gap-3 px-5 py-2 hover:bg-[var(--color-cool-50)]">
+  <div class="pt-0.5"><%= render "shared/avatar", member: message.member, size: :md %></div>
+  <div class="min-w-0 flex-1">
+    <div class="flex items-baseline gap-2">
+      <span class="text-sm font-semibold"><%= message.member&.name || "Someone" %></span>
+      <span class="font-mono text-[11px] text-[var(--color-ink-faint)]"><%= message.created_at.strftime("%-l:%M %p") %></span>
+    </div>
+    <p class="text-sm leading-relaxed text-[var(--color-ink)]"><%= message.body %></p>
+  </div>
+</div>

@@ -1,0 +1,10 @@
+<div id="<%= dom_id(comment) %>" class="flex items-start gap-2.5">
+  <div class="pt-0.5"><%= render "shared/avatar", member: comment.member, size: :sm %></div>
+  <div class="min-w-0 flex-1 rounded-lg bg-[var(--color-cool-50)] px-3 py-2">
+    <div class="flex items-baseline gap-2">
+      <span class="text-xs font-semibold"><%= comment.member&.name || "Someone" %></span>
+      <span class="font-mono text-[10px] text-[var(--color-ink-faint)]"><%= time_ago_in_words(comment.created_at) %> ago</span>
+    </div>
+    <p class="mt-0.5 text-sm leading-snug text-[var(--color-ink-soft)]"><%= comment.body %></p>
+  </div>
+</div>

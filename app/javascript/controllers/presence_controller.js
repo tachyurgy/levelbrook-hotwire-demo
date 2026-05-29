@@ -1,28 +1,38 @@
 import { Controller } from "@hotwired/stimulus"
 import { cable } from "@hotwired/turbo-rails"
 
-// Anonymous presence for the public board, modeled on Campfire's presence
-// controller: subscribe on connect, tear the subscription down on disconnect.
-// The server keeps a per-board connection count and broadcasts the rendered
-// badge HTML; we morph it into place. No identity, no auth — this board is
-// public, so "N viewers" is just live connection count.
+// Subscribes to a channel's PresenceChannel, heartbeats while visible, and
+// renders the live roster of avatars. Presence is ephemeral raw-cable JSON.
 export default class extends Controller {
-  static values = { boardId: Number }
+  static targets = ["roster"]
+  static values = { slug: String }
 
   async connect() {
     this.channel = await cable.subscribeTo(
-      { channel: "PresenceChannel", board_id: this.boardIdValue },
-      { received: this.#received }
+      { channel: "PresenceChannel", slug: this.slugValue },
+      { received: this.received.bind(this) }
     )
+    this.heartbeat = setInterval(() => this.channel?.perform("present"), 30000)
+    document.addEventListener("visibilitychange", this.onVisibility)
   }
 
   disconnect() {
+    clearInterval(this.heartbeat)
+    document.removeEventListener("visibilitychange", this.onVisibility)
     this.channel?.unsubscribe()
   }
 
-  #received = (html) => {
-    if (typeof html !== "string") return
-    const badge = this.element.querySelector("#board_presence")
-    if (badge) badge.outerHTML = html
+  onVisibility = () => {
+    if (document.visibilityState === "visible") this.channel?.perform("present")
+  }
+
+  received(data) {
+    if (!data.names) return
+    this.rosterTarget.innerHTML = data.names.map((name) => this.#avatar(name)).join("")
+  }
+
+  #avatar(name) {
+    const initials = name.split(" ").map((p) => p[0]).slice(0, 2).join("").toUpperCase()
+    return `<span title="${name}" class="grid h-6 w-6 place-items-center rounded-full bg-emerald-100 text-emerald-700 font-mono text-[9px] font-semibold ring-1 ring-emerald-200">${initials}</span>`
   }
 }

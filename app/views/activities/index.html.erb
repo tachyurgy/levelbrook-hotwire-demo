@@ -1,0 +1,10 @@
+<% content_for :title, "Activity — Levelbrook" %>
+<div class="mx-auto max-w-2xl px-5 py-10">
+  <p class="eyebrow">Infinite scroll · deferred lazy Turbo Frames</p>
+  <h1 class="font-display text-3xl font-bold tracking-tight">Activity</h1>
+  <%= technique_caption "Each page ends in a lazy turbo_frame_tag pointing at the next page; it loads when scrolled into view and renders the next lazy frame. No scroll-listener code." %>
+
+  <ol id="activity_feed" class="mt-6 space-y-2">
+    <%= render "activities/page", activities: @activities, next_page: @next_page %>
+  </ol>
+</div>

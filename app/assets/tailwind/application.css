@@ -1,1 +1,128 @@
 @import "tailwindcss";
+
+/* ===========================================================================
+   Levelbrook Workspace — "Engineered Editorial" design system
+   Fonts: Bricolage Grotesque (display), Inter Tight (UI), JetBrains Mono (meta)
+   Palette: warm ink, warm paper, one ruby-vermilion accent. Hairlines. No gradients.
+   =========================================================================== */
+
+@theme {
+  --font-display: "Bricolage Grotesque", ui-sans-serif, system-ui, sans-serif;
+  --font-sans: "Inter Tight", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
+
+  /* Editorial paper/ink */
+  --color-paper: #f7f5f0;
+  --color-surface: #ffffff;
+  --color-ink: #14171a;
+  --color-ink-soft: #444b52;
+  --color-ink-faint: #767d85;
+  --color-hairline: #e6e2d8;
+
+  /* The single accent */
+  --color-accent: #c8402f;
+  --color-accent-soft: #f5e3df;
+
+  /* Cool-gray product surface (Linear-like) for the workspace chrome */
+  --color-cool-50: #f8f9fb;
+  --color-cool-100: #f1f3f6;
+  --color-cool-200: #e6e9ee;
+  --color-cool-300: #d4d9e0;
+  --color-cool-500: #6b7280;
+  --color-cool-700: #374151;
+  --color-cool-900: #111827;
+}
+
+@layer base {
+  body {
+    font-family: var(--font-sans);
+    background-color: var(--color-paper);
+    color: var(--color-ink);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  ::selection {
+    background-color: var(--color-accent);
+    color: #fff;
+  }
+}
+
+@layer components {
+  /* Display + label utilities */
+  .font-display { font-family: var(--font-display); }
+  .font-mono { font-family: var(--font-mono); }
+
+  .eyebrow {
+    font-family: var(--font-mono);
+    font-size: 0.6875rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--color-ink-faint);
+  }
+
+  .hairline { border-color: var(--color-hairline); }
+
+  /* Buttons */
+  .btn {
+    @apply inline-flex items-center justify-center gap-2 rounded-md px-3.5 py-2 text-sm font-medium transition;
+    font-family: var(--font-sans);
+  }
+  .btn-accent {
+    background-color: var(--color-accent);
+    color: #fff;
+  }
+  .btn-accent:hover { filter: brightness(0.93); }
+  .btn-ghost {
+    border: 1px solid var(--color-hairline);
+    background-color: var(--color-surface);
+    color: var(--color-ink);
+  }
+  .btn-ghost:hover { background-color: var(--color-cool-50); }
+
+  /* Key / chip / pill */
+  .kbd {
+    font-family: var(--font-mono);
+    font-size: 0.6875rem;
+    @apply inline-flex items-center rounded border px-1.5 py-0.5;
+    border-color: var(--color-hairline);
+    background-color: var(--color-cool-50);
+    color: var(--color-ink-soft);
+  }
+
+  .issue-key {
+    font-family: var(--font-mono);
+    font-size: 0.6875rem;
+    letter-spacing: 0.02em;
+    color: var(--color-cool-500);
+  }
+
+  .field-input {
+    @apply w-full rounded-md border px-3 py-2 text-sm outline-none transition;
+    border-color: var(--color-hairline);
+    background-color: var(--color-surface);
+    color: var(--color-ink);
+  }
+  .field-input:focus {
+    border-color: var(--color-accent);
+    box-shadow: 0 0 0 3px var(--color-accent-soft);
+  }
+}
+
+/* Toast animation */
+@keyframes toast-in {
+  from { opacity: 0; transform: translateY(8px) scale(0.98); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+.toast-enter { animation: toast-in 220ms cubic-bezier(0.2, 0.8, 0.2, 1); }
+
+/* Card drag affordances (SortableJS) */
+.sortable-ghost { opacity: 0.35; }
+.sortable-drag  { transform: rotate(1.5deg); }
+
+/* View Transition: cards morph smoothly into the detail */
+@media (prefers-reduced-motion: no-preference) {
+  ::view-transition-old(root),
+  ::view-transition-new(root) {
+    animation-duration: 220ms;
+  }
+}

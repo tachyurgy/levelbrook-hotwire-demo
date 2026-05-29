@@ -1,0 +1,9 @@
+<%= turbo_frame_tag dom_id(issue, :assignee) do %>
+  <%= form_with model: issue, url: issue_field_path(issue, :assignee), method: :patch, class: "flex items-center gap-2" do |f| %>
+    <%= render "shared/avatar", member: issue.assignee, size: :sm %>
+    <%= f.collection_select :assignee_id,
+          (local_assigns[:members] || Member.order(:id)), :id, :name,
+          { selected: issue.assignee_id, include_blank: "Unassigned" },
+          class: "field-input cursor-pointer py-1.5", onchange: "this.form.requestSubmit()" %>
+  <% end %>
+<% end %>

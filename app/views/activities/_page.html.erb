@@ -1,0 +1,31 @@
+<% icons = {
+     "issue"   => '<path d="M4 4h12v12H4z" rx="2"/>',
+     "comment" => '<path d="M4 5h12v8H8l-4 3z"/>',
+     "chat"    => '<path d="M4 5h12v7H7l-3 3z"/>'
+   } %>
+<% activities.each do |a| %>
+  <li class="flex items-start gap-3 rounded-lg border hairline bg-[var(--color-surface)] px-4 py-3">
+    <span class="mt-0.5 grid h-7 w-7 shrink-0 place-items-center rounded-md bg-[var(--color-cool-100)] text-[var(--color-cool-700)]">
+      <svg class="h-3.5 w-3.5" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.4"><%== icons.fetch(a.icon, icons["issue"]) %></svg>
+    </span>
+    <div class="min-w-0 flex-1">
+      <p class="text-sm leading-snug">
+        <span class="font-semibold"><%= a.actor %></span>
+        <span class="text-[var(--color-ink-soft)]"><%= a.verb %></span>
+        <span class="font-medium"><%= a.subject %></span>
+      </p>
+      <p class="truncate text-xs text-[var(--color-ink-faint)]"><%= a.context %></p>
+    </div>
+    <span class="shrink-0 font-mono text-[10px] text-[var(--color-ink-faint)]"><%= time_ago_in_words(a.at) %> ago</span>
+  </li>
+<% end %>
+
+<% if next_page %>
+  <%# Lazy frame: fetches the next page when it scrolls into view. %>
+  <%= turbo_frame_tag "activity_page_#{next_page}", src: activities_path(page: next_page), loading: :lazy do %>
+    <li class="flex items-center justify-center gap-2 py-4 text-sm text-[var(--color-ink-faint)]">
+      <svg class="h-4 w-4 animate-spin" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3a9 9 0 1 0 9 9" stroke-linecap="round"/></svg>
+      Loading more…
+    </li>
+  <% end %>
+<% end %>

@@ -1,0 +1,7 @@
+<%= turbo_frame_tag dom_id(issue, :title) do %>
+  <%= form_with model: issue, url: issue_field_path(issue, :title), method: :patch, class: "flex items-start gap-2" do |f| %>
+    <%= f.text_field :title, autofocus: true, class: "field-input font-display text-lg font-bold" %>
+    <%= f.submit "Save", class: "btn btn-accent shrink-0" %>
+    <%= link_to "Cancel", issue_field_path(issue, :title, cancel: 1), class: "btn btn-ghost shrink-0" %>
+  <% end %>
+<% end %>

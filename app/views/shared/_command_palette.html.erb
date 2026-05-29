@@ -1,0 +1,26 @@
+<%#
+  ⌘K command palette. The Stimulus controller opens the dialog on ⌘K/Ctrl-K,
+  debounces typing into a Turbo Frame fetch of server-rendered results, and
+  arrow-key navigates them. Selecting visits the result's URL.
+%>
+<div data-controller="command-palette"
+     data-command-palette-url-value="<%= command_path %>"
+     data-action="keydown.meta+k@window->command-palette#open keydown.ctrl+k@window->command-palette#open keydown.esc@window->command-palette#close command-palette:open@window->command-palette#open"
+     data-turbo-permanent
+     id="command_palette">
+  <dialog data-command-palette-target="dialog"
+          data-action="click->command-palette#backdropClose"
+          class="mx-auto mt-[12vh] w-full max-w-xl rounded-xl border hairline bg-[var(--color-surface)] p-0 shadow-2xl backdrop:bg-black/40 backdrop:backdrop-blur-sm">
+    <div class="flex items-center gap-3 border-b hairline px-4">
+      <svg class="h-4 w-4 text-[var(--color-ink-faint)]" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="9" cy="9" r="6"/><path d="m17 17-3.5-3.5"/></svg>
+      <input data-command-palette-target="input"
+             data-action="input->command-palette#search keydown.down->command-palette#next keydown.up->command-palette#prev keydown.enter->command-palette#select"
+             type="text" autocomplete="off" placeholder="Jump to a board, channel, issue, or view…"
+             class="w-full bg-transparent py-3.5 text-sm outline-none placeholder:text-[var(--color-ink-faint)]">
+      <span class="kbd">esc</span>
+    </div>
+    <%= turbo_frame_tag "command_results", data: { command_palette_target: "results" } do %>
+      <div class="px-4 py-8 text-center text-sm text-[var(--color-ink-faint)]">Start typing to search the workspace.</div>
+    <% end %>
+  </dialog>
+</div>

@@ -1,20 +1,17 @@
 <!DOCTYPE html>
 <html lang="en" class="h-full">
   <head>
-    <title><%= content_for(:title) || "Levelbrook Hotwire Demos" %></title>
+    <title><%= content_for(:title) || "Levelbrook Workspace" %></title>
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="application-name" content="Levelbrook Hotwire Demos">
-    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="application-name" content="Levelbrook Workspace">
     <%= csrf_meta_tags %>
     <%= csp_meta_tag %>
 
-    <%# --- Hotwire 2026 defaults --- %>
-    <%# Navigation page-refreshes morph the DOM (preserving scroll/focus) %>
-    <%# instead of replacing <body>. broadcasts_refreshes uses the same path. %>
+    <%# Hotwire 2026 defaults: navigations morph the DOM (preserving scroll/ %>
+    <%# focus/permanent elements) and run inside a View Transition where supported. %>
     <meta name="turbo-refresh-method" content="morph">
     <meta name="turbo-refresh-scroll" content="preserve">
-    <%# Wrap same-origin renders in document.startViewTransition where supported. %>
     <meta name="view-transition" content="same-origin">
 
     <%= yield :head %>
@@ -22,23 +19,35 @@
     <link rel="icon" href="/icon.svg" type="image/svg+xml">
     <link rel="apple-touch-icon" href="/icon.png">
 
+    <%# Engineered Editorial typeface stack %>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,700;12..96,800&family=Inter+Tight:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+
     <%= stylesheet_link_tag :tailwind, "data-turbo-track": "reload" %>
     <%= javascript_importmap_tags %>
   </head>
 
-  <body class="h-full bg-slate-950 text-slate-100 antialiased">
-    <%= render "shared/nav" %>
+  <body class="h-full antialiased">
+    <div class="flex min-h-full flex-col">
+      <%= render "shared/nav" %>
 
-    <% if notice.present? %>
-      <div class="mx-auto max-w-6xl px-5">
-        <div class="mt-4 rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-4 py-2 text-sm text-emerald-200">
-          <%= notice %>
-        </div>
-      </div>
-    <% end %>
+      <main class="flex-1">
+        <%= yield %>
+      </main>
+    </div>
 
-    <main>
-      <%= yield %>
-    </main>
+    <%# Toast stack — Turbo Stream side-channel appends here from anywhere. %>
+    <div id="toasts" class="pointer-events-none fixed bottom-20 right-5 z-50 flex w-80 flex-col gap-2"></div>
+
+    <%# Lazy Turbo Frame modal — links with data-turbo-frame="modal" render here. %>
+    <%= render "shared/modal" %>
+
+    <%# ⌘K command palette overlay. %>
+    <%= render "shared/command_palette" %>
+
+    <%# Persistent media player. Lives in the layout, is permanent across all %>
+    <%# Turbo navigations, and never re-mounts — so playback never cuts out. %>
+    <%= render "shared/player" %>
   </body>
 </html>

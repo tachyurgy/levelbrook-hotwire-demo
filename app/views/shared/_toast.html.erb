@@ -1,0 +1,21 @@
+<%#
+  A single toast. Appended to #toasts via Turbo Stream from anywhere. The
+  Stimulus controller fades it out and removes it after a timeout.
+  locals: id, title, body (optional), kind (:info | :success | :danger)
+%>
+<% kind ||= :info %>
+<% bar = { info: "bg-[var(--color-ink)]", success: "bg-emerald-500", danger: "bg-[var(--color-accent)]" }.fetch(kind) %>
+<div id="<%= id %>" role="status"
+     data-controller="toast" data-toast-target="root"
+     class="toast-enter pointer-events-auto overflow-hidden rounded-lg border hairline bg-[var(--color-surface)] shadow-lg">
+  <div class="flex">
+    <div class="w-1 shrink-0 <%= bar %>"></div>
+    <div class="flex-1 px-3.5 py-2.5">
+      <div class="text-sm font-semibold leading-tight"><%= title %></div>
+      <% if local_assigns[:body].present? %>
+        <div class="mt-0.5 text-xs text-[var(--color-ink-soft)]"><%= body %></div>
+      <% end %>
+    </div>
+    <button type="button" data-action="toast#dismiss" class="px-3 text-[var(--color-ink-faint)] hover:text-[var(--color-ink)]">×</button>
+  </div>
+</div>

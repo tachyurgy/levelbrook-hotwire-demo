@@ -1,0 +1,8 @@
+<%= turbo_frame_tag dom_id(issue, :status) do %>
+  <%= form_with model: issue, url: issue_field_path(issue, :status), method: :patch do |f| %>
+    <%= f.collection_select :column_id,
+          issue.column.project.columns, :id, :name,
+          { selected: issue.column_id },
+          class: "field-input cursor-pointer py-1.5", onchange: "this.form.requestSubmit()" %>
+  <% end %>
+<% end %>

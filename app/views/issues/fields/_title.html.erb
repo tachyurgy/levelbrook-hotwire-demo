@@ -1,0 +1,6 @@
+<%= turbo_frame_tag dom_id(issue, :title) do %>
+  <%= link_to issue_field_path(issue, :title), class: "group block cursor-text rounded-md -mx-1 px-1 py-0.5 hover:bg-[var(--color-cool-50)]" do %>
+    <h2 class="font-display text-xl font-bold leading-tight tracking-tight"><%= issue.title %></h2>
+    <span class="eyebrow opacity-0 transition group-hover:opacity-100">click to edit</span>
+  <% end %>
+<% end %>

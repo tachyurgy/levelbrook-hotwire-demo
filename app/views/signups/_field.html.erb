@@ -1,0 +1,44 @@
+<%# Per-field frame. Validates on blur via the validate controller, which posts
+    the whole form to /signups/validate and stream-replaces this frame. %>
+<% labels = { "workspace_name" => "Workspace name", "subdomain" => "Subdomain",
+              "email" => "Admin email", "seats" => "Seats" } %>
+<% hints = { "workspace_name" => "Shown across the workspace.",
+             "subdomain" => "lowercase, numbers, dashes — your-team.levelbrook.app",
+             "email" => "Where we send the invite.",
+             "seats" => "How many people on the team (1–500)." } %>
+<% errors = signup.errors[field.to_sym] %>
+<% valid = signup.errors.present? && errors.empty? && signup.public_send(field).present? %>
+<% input_class = "field-input #{'border-[var(--color-accent)]' if errors.any?}" %>
+<% input_data = { action: "blur->validate#check", validate_field_param: field } %>
+
+<%= turbo_frame_tag "signup_field_#{field}" do %>
+  <div>
+    <div class="mb-1 flex items-baseline justify-between">
+      <label class="text-sm font-medium" for="signup_<%= field %>"><%= labels[field] %></label>
+      <% if valid %><span class="font-mono text-[11px] text-emerald-600">✓ looks good</span><% end %>
+    </div>
+
+    <% if field == "subdomain" %>
+      <div class="flex items-stretch">
+        <%= text_field_tag "signup[subdomain]", signup.subdomain, id: "signup_subdomain",
+              autocomplete: "off", class: "#{input_class} rounded-r-none", data: input_data %>
+        <span class="inline-flex items-center rounded-r-md border border-l-0 hairline bg-[var(--color-cool-50)] px-3 font-mono text-xs text-[var(--color-ink-faint)]">.levelbrook.app</span>
+      </div>
+    <% elsif field == "email" %>
+      <%= email_field_tag "signup[email]", signup.email, id: "signup_email",
+            autocomplete: "off", class: input_class, data: input_data %>
+    <% elsif field == "seats" %>
+      <%= number_field_tag "signup[seats]", signup.seats, id: "signup_seats",
+            min: 1, max: 500, class: input_class, data: input_data %>
+    <% else %>
+      <%= text_field_tag "signup[workspace_name]", signup.workspace_name, id: "signup_workspace_name",
+            autocomplete: "off", class: input_class, data: input_data %>
+    <% end %>
+
+    <% if errors.any? %>
+      <p class="mt-1 text-xs text-[var(--color-accent)]"><%= labels[field] %> <%= errors.first %>.</p>
+    <% else %>
+      <p class="mt-1 text-xs text-[var(--color-ink-faint)]"><%= hints[field] %></p>
+    <% end %>
+  </div>
+<% end %>

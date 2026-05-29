@@ -1,5 +1,7 @@
 class PagesController < ApplicationController
   def home
-    @stories = Story.all
+    @projects = Project.all
+    @channels = Channel.all
+    @members = Member.order(:id)
   end
 end

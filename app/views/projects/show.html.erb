@@ -1,0 +1,30 @@
+<% content_for :title, "#{@project.name} — Levelbrook" %>
+
+<%# Subscribe to the project's refresh stream. When any issue moves, the model %>
+<%# broadcasts a page refresh and Turbo morphs this board in place. %>
+<%= turbo_stream_from @project %>
+
+<div class="mx-auto max-w-[1400px] px-5 py-6">
+  <div class="mb-5 flex flex-wrap items-end justify-between gap-3">
+    <div>
+      <div class="flex items-center gap-2">
+        <%= link_to "Boards", projects_path, class: "issue-key hover:text-[var(--color-ink)]", data: { turbo_action: "advance" } %>
+        <span class="issue-key">/</span>
+        <span class="issue-key rounded bg-[var(--color-cool-100)] px-1.5 py-0.5 text-[var(--color-cool-700)]"><%= @project.key %></span>
+      </div>
+      <h1 class="mt-1 font-display text-2xl font-bold tracking-tight"><%= @project.name %></h1>
+      <%= technique_caption "Open two windows side by side, then drag a card — both update live." %>
+    </div>
+    <div class="flex items-center gap-2">
+      <%= button_to "Reset board", reset_project_path(@project), class: "btn btn-ghost", form: { data: { turbo_confirm: "Reset this board to the seeded demo state?" } } %>
+    </div>
+  </div>
+
+  <%# The board itself. dom_id wraps it so morph targets it cleanly. %>
+  <div id="<%= dom_id(@project, :board) %>"
+       class="flex gap-4 overflow-x-auto pb-4">
+    <% @columns.each do |column| %>
+      <%= render "columns/column", column: column %>
+    <% end %>
+  </div>
+</div>

@@ -1,0 +1,4 @@
+<%# Lazy-frame body for page > 1. The matching frame id lets Turbo splice it in. %>
+<%= turbo_frame_tag "activity_page_#{@page}" do %>
+  <%= render "activities/page", activities: @activities, next_page: @next_page %>
+<% end %>
