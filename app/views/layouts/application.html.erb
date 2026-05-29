@@ -48,6 +48,12 @@
         <%= render "shared/modal" %>
         <%= render "shared/command_palette" %>
       <% end %>
+
+      <%# Spindle's persistent player: data-turbo-permanent, so it survives every %>
+      <%# Turbo navigation inside the app and keeps playing without re-mounting. %>
+      <% if current_app.key == :spindle %>
+        <%= render "spindle/player" %>
+      <% end %>
     <% else %>
       <%# Gallery / standalone pages render chromeless. %>
       <%= yield %>

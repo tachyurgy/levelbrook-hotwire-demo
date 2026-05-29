@@ -1,0 +1,28 @@
+<% content_for :title, "Spindle — Library" %>
+
+<div class="mx-auto max-w-6xl px-5 py-8 pb-24">
+  <p class="eyebrow">Library · the player keeps going as you browse</p>
+  <h1 class="mt-1 font-display text-3xl font-extrabold tracking-tight">Spindle</h1>
+  <p class="mt-1.5 max-w-2xl text-sm text-[var(--color-ink-soft)]">
+    Press play on any track, then move between albums — the bar at the bottom is <code class="font-mono text-[12px]">data-turbo-permanent</code>,
+    so it survives every navigation and never cuts out. Every track is synthesized live in the browser (Web Audio), started only by you.
+  </p>
+
+  <div class="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+    <% @albums.each do |album| %>
+      <%= link_to spindle_album_path(album), data: { turbo_action: "advance" },
+            class: "group overflow-hidden rounded-2xl border hairline bg-[var(--color-surface)] transition hover:-translate-y-0.5 hover:shadow-xl" do %>
+        <div class="aspect-[16/10] w-full" style="view-transition-name: album-<%= album.slug %>; background: linear-gradient(135deg, <%= album.hue %>, color-mix(in srgb, <%= album.hue %> 40%, #14171a))">
+          <div class="flex h-full items-end p-4">
+            <span class="font-display text-2xl font-extrabold text-white drop-shadow"><%= album.title %></span>
+          </div>
+        </div>
+        <div class="p-4">
+          <p class="font-mono text-[11px] text-[var(--color-ink-faint)]"><%= album.artist %></p>
+          <p class="mt-0.5 text-sm text-[var(--color-ink-soft)]"><%= album.mood %></p>
+          <p class="mt-2 font-mono text-[10px] text-[var(--color-ink-faint)]"><%= pluralize(album.tracks.size, "track") %></p>
+        </div>
+      <% end %>
+    <% end %>
+  </div>
+</div>

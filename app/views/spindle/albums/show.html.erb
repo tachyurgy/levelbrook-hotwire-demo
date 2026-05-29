@@ -1,0 +1,36 @@
+<% content_for :title, "#{@album.title} — Spindle" %>
+
+<div class="mx-auto max-w-4xl px-5 py-8 pb-24">
+  <div class="flex flex-col gap-5 sm:flex-row sm:items-end">
+    <div class="aspect-square w-40 shrink-0 rounded-2xl shadow-lg"
+         style="view-transition-name: album-<%= @album.slug %>; background: linear-gradient(135deg, <%= @album.hue %>, color-mix(in srgb, <%= @album.hue %> 40%, #14171a))"></div>
+    <div>
+      <p class="eyebrow">Album</p>
+      <h1 class="mt-1 font-display text-4xl font-extrabold tracking-tight"><%= @album.title %></h1>
+      <p class="mt-1 text-sm font-medium text-[var(--color-ink-soft)]"><%= @album.artist %></p>
+      <p class="mt-1 text-sm text-[var(--color-ink-faint)]"><%= @album.mood %></p>
+    </div>
+  </div>
+
+  <div class="mt-8 overflow-hidden rounded-xl border hairline bg-[var(--color-surface)]">
+    <ul class="divide-y hairline">
+      <% @tracks.each do |track| %>
+        <li class="flex items-center gap-4 px-4 py-3 transition hover:bg-[var(--color-cool-50)]">
+          <button data-controller="spindle-play"
+                  data-spindle-play-track-value="<%= track.play_payload.to_json %>"
+                  data-action="spindle-play#play"
+                  class="grid h-9 w-9 shrink-0 place-items-center rounded-full border hairline text-[var(--color-ink-soft)] transition hover:border-[var(--color-accent)] hover:text-[var(--color-accent)]"
+                  aria-label="Play <%= track.title %>">
+            <svg class="h-3.5 w-3.5 translate-x-px" viewBox="0 0 16 16" fill="currentColor"><path d="M4 2.5v11l9-5.5z"/></svg>
+          </button>
+          <span class="w-5 shrink-0 text-center font-mono text-[11px] text-[var(--color-ink-faint)]"><%= track.position + 1 %></span>
+          <span class="min-w-0 flex-1 truncate text-sm font-medium"><%= track.title %></span>
+          <span class="rounded-full bg-[var(--color-cool-100)] px-2 py-0.5 font-mono text-[10px] text-[var(--color-ink-soft)]"><%= track.texture %> · <%= track.bpm %>bpm</span>
+          <span class="font-mono text-[11px] text-[var(--color-ink-faint)] tabular-nums"><%= track.duration_label %></span>
+        </li>
+      <% end %>
+    </ul>
+  </div>
+
+  <%= technique_caption "Play a track, then jump to another album from the left rail — the player bar is data-turbo-permanent, so its Web Audio graph is never torn down and the music keeps going. Album art animates between pages with the View Transitions API." %>
+</div>

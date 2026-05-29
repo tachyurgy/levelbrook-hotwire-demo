@@ -1,0 +1,43 @@
+<%#
+  The persistent player. It lives in the layout, is data-turbo-permanent, and
+  owns a Web Audio graph in its Stimulus controller — so it survives every Turbo
+  navigation inside Spindle and keeps playing without re-mounting. Track rows
+  dispatch a `spindle:play` window event the controller listens for; nothing is
+  re-initialised on navigation.
+%>
+<div id="spindle_player" data-turbo-permanent
+     data-controller="synth"
+     class="fixed inset-x-0 bottom-0 z-40 border-t hairline bg-[var(--color-surface)]/95 backdrop-blur">
+  <div class="mx-auto flex h-16 max-w-6xl items-center gap-4 px-5">
+    <button type="button" data-action="synth#toggle"
+            class="grid h-10 w-10 shrink-0 place-items-center rounded-full text-white transition hover:scale-105"
+            style="background: var(--color-accent)" aria-label="Play / pause">
+      <svg data-synth-target="playIcon" class="h-4 w-4 translate-x-px" viewBox="0 0 16 16" fill="currentColor"><path d="M4 2.5v11l9-5.5z"/></svg>
+      <svg data-synth-target="pauseIcon" class="hidden h-4 w-4" viewBox="0 0 16 16" fill="currentColor"><path d="M4 2.5h3v11H4zM9 2.5h3v11H9z"/></svg>
+    </button>
+
+    <div class="flex items-end gap-0.5" data-synth-target="viz" style="height:20px">
+      <% [10,16,8,14,6].each_with_index do |h, i| %>
+        <span class="w-0.5 rounded-full bg-[var(--color-accent)] opacity-30" style="height:<%= h %>px; animation: eq 820ms <%= i*110 %>ms ease-in-out infinite alternate"></span>
+      <% end %>
+    </div>
+
+    <div class="min-w-0 flex-1">
+      <div class="truncate text-sm font-semibold leading-tight" data-synth-target="title">Nothing playing</div>
+      <div class="truncate font-mono text-[11px] text-[var(--color-ink-faint)]" data-synth-target="artist">Pick a track — it keeps playing as you browse</div>
+      <div class="mt-1 h-1 overflow-hidden rounded-full bg-[var(--color-cool-100)]">
+        <div class="h-full rounded-full" style="width:0%; background: var(--color-accent)" data-synth-target="bar"></div>
+      </div>
+    </div>
+
+    <span class="kbd hidden md:inline">data-turbo-permanent</span>
+    <input type="range" min="0" max="100" value="50" aria-label="Volume"
+           data-action="input->synth#volume" data-synth-target="volume"
+           class="h-1 w-20 cursor-pointer accent-[var(--color-accent)]">
+  </div>
+</div>
+
+<style>
+  @keyframes eq { from { transform: scaleY(0.4); } to { transform: scaleY(1); } }
+  #spindle_player [data-synth-target="viz"].is-playing span { opacity: 1; }
+</style>

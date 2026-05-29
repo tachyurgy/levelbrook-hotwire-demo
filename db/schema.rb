@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_05_29_000002) do
+ActiveRecord::Schema[8.1].define(version: 2026_05_29_000003) do
   create_table "ballot_options", force: :cascade do |t|
     t.datetime "created_at", null: false
     t.string "label", null: false
@@ -152,6 +152,31 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_29_000002) do
     t.index ["slug"], name: "index_pulse_services_on_slug", unique: true
   end
 
+  create_table "spindle_albums", force: :cascade do |t|
+    t.string "artist", null: false
+    t.datetime "created_at", null: false
+    t.string "hue", default: "#7c3aed", null: false
+    t.string "mood"
+    t.integer "position", default: 0, null: false
+    t.string "slug", null: false
+    t.string "title", null: false
+    t.datetime "updated_at", null: false
+    t.index ["slug"], name: "index_spindle_albums_on_slug", unique: true
+  end
+
+  create_table "spindle_tracks", force: :cascade do |t|
+    t.integer "album_id", null: false
+    t.integer "bpm", default: 84, null: false
+    t.datetime "created_at", null: false
+    t.string "duration_label", default: "3:00", null: false
+    t.integer "position", default: 0, null: false
+    t.string "roots", null: false
+    t.string "texture", default: "keys", null: false
+    t.string "title", null: false
+    t.datetime "updated_at", null: false
+    t.index ["album_id"], name: "index_spindle_tracks_on_album_id"
+  end
+
   add_foreign_key "ballot_options", "ballot_polls", column: "poll_id"
   add_foreign_key "ballot_polls", "ballot_rooms", column: "room_id"
   add_foreign_key "ballot_questions", "ballot_rooms", column: "room_id"
@@ -163,4 +188,5 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_29_000002) do
   add_foreign_key "messages", "channels"
   add_foreign_key "messages", "members"
   add_foreign_key "pulse_incidents", "pulse_services", column: "service_id"
+  add_foreign_key "spindle_tracks", "spindle_albums", column: "album_id"
 end
