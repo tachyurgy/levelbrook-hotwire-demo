@@ -1,0 +1,582 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Pulse — A Live Ops Dashboard with No Client Polling and No Charting JS | Levelbrook Consulting</title>
+<meta name="author" content="Levelbrook Consulting">
+<meta name="description" content="A deep technical write-up of Pulse, a live ops &amp; incident dashboard built on Rails 8 and Hotwire: background Active Job to Turbo Stream, server-rendered SVG sparklines, and morphing dashboards — no polling, no frontend charting stack.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;600;700;800&family=Inter+Tight:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --accent:#4f46e5;
+    --accent-soft:#e1dffb;
+    --ink:#1a1a22;
+    --ink-soft:#4b4b57;
+    --ink-faint:#8a8a98;
+    --bg:#ffffff;
+    --surface:#fafaff;
+    --hairline:#e7e7ef;
+    --code-bg:#f6f6fb;
+  }
+  *{box-sizing:border-box;}
+  html{-webkit-text-size-adjust:100%;}
+  body{
+    margin:0;
+    background:var(--bg);
+    color:var(--ink);
+    font-family:"Inter Tight",-apple-system,BlinkMacSystemFont,sans-serif;
+    font-size:18px;
+    line-height:1.65;
+    -webkit-font-smoothing:antialiased;
+  }
+  .wrap{max-width:760px;margin:0 auto;padding:0 24px;}
+  header.hero{
+    border-bottom:1px solid var(--hairline);
+    padding:72px 0 56px;
+    margin-bottom:8px;
+  }
+  .eyebrow{
+    font-family:"JetBrains Mono",monospace;
+    font-size:12px;
+    letter-spacing:.14em;
+    text-transform:uppercase;
+    color:var(--accent);
+    font-weight:600;
+    margin:0 0 18px;
+  }
+  h1{
+    font-family:"Bricolage Grotesque",sans-serif;
+    font-weight:800;
+    font-size:clamp(34px,6vw,54px);
+    line-height:1.04;
+    letter-spacing:-.02em;
+    margin:0 0 18px;
+  }
+  .tagline{
+    font-size:21px;
+    color:var(--ink-soft);
+    max-width:600px;
+    margin:0 0 28px;
+  }
+  .badges{display:flex;flex-wrap:wrap;gap:8px;margin-top:4px;}
+  .badge{
+    font-family:"JetBrains Mono",monospace;
+    font-size:12px;
+    font-weight:500;
+    padding:5px 11px;
+    border-radius:7px;
+    background:var(--accent-soft);
+    color:#332a8c;
+    border:1px solid #d3d0f4;
+  }
+  .hero-spark{margin-top:36px;}
+  .hero-spark svg{width:100%;height:64px;display:block;}
+  h2{
+    font-family:"Bricolage Grotesque",sans-serif;
+    font-weight:700;
+    font-size:30px;
+    letter-spacing:-.015em;
+    line-height:1.12;
+    margin:56px 0 18px;
+  }
+  h3{
+    font-family:"Bricolage Grotesque",sans-serif;
+    font-weight:600;
+    font-size:21px;
+    letter-spacing:-.01em;
+    margin:36px 0 12px;
+  }
+  p{margin:0 0 20px;}
+  a{color:var(--accent);text-decoration:none;border-bottom:1px solid var(--accent-soft);}
+  a:hover{border-bottom-color:var(--accent);}
+  strong{font-weight:600;color:var(--ink);}
+  ul,ol{margin:0 0 22px;padding-left:22px;}
+  li{margin-bottom:10px;}
+  code{
+    font-family:"JetBrains Mono",monospace;
+    font-size:.86em;
+    background:var(--code-bg);
+    padding:2px 6px;
+    border-radius:5px;
+    color:#3a3a52;
+  }
+  figure.code{margin:26px 0;}
+  figure.code figcaption{
+    font-family:"JetBrains Mono",monospace;
+    font-size:12px;
+    color:var(--ink-faint);
+    padding:7px 14px;
+    background:var(--code-bg);
+    border:1px solid var(--hairline);
+    border-bottom:none;
+    border-top-left-radius:9px;
+    border-top-right-radius:9px;
+    letter-spacing:.02em;
+  }
+  pre{
+    margin:0;
+    background:var(--code-bg);
+    border:1px solid var(--hairline);
+    border-left:3px solid var(--accent);
+    border-radius:0 9px 9px 0;
+    padding:18px 20px;
+    overflow-x:auto;
+    line-height:1.55;
+  }
+  figure.code pre{border-top-left-radius:0;}
+  pre code{
+    background:none;
+    padding:0;
+    font-size:13.5px;
+    color:#2c2c3c;
+  }
+  .pull{
+    border-left:3px solid var(--accent);
+    padding:4px 0 4px 22px;
+    margin:30px 0;
+    font-family:"Bricolage Grotesque",sans-serif;
+    font-size:22px;
+    font-weight:600;
+    line-height:1.3;
+    color:var(--ink);
+    letter-spacing:-.01em;
+  }
+  hr{border:none;border-top:1px solid var(--hairline);margin:48px 0;}
+  .tradeoff{
+    background:var(--surface);
+    border:1px solid var(--hairline);
+    border-radius:11px;
+    padding:20px 24px;
+    margin:22px 0;
+  }
+  .tradeoff h3{margin-top:0;}
+  footer.stack{
+    border-top:1px solid var(--hairline);
+    margin-top:64px;
+    padding:40px 0 72px;
+  }
+  .stack-grid{display:flex;flex-wrap:wrap;gap:8px;margin:18px 0 28px;}
+  .stack-item{
+    font-family:"JetBrains Mono",monospace;
+    font-size:12px;
+    padding:6px 11px;
+    border:1px solid var(--hairline);
+    border-radius:7px;
+    color:var(--ink-soft);
+    background:var(--surface);
+  }
+  .brand{
+    font-family:"Bricolage Grotesque",sans-serif;
+    font-weight:700;
+    font-size:16px;
+  }
+  .muted{color:var(--ink-faint);font-size:14px;}
+  .muted a{color:var(--ink-faint);border-bottom-color:var(--hairline);}
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <div class="wrap">
+    <p class="eyebrow">Levelbrook Consulting · Hotwire Field Notes</p>
+    <h1>Pulse: a live ops dashboard with no polling and no charting JS</h1>
+    <p class="tagline">A monitoring board where background jobs are the broadcast source, charts are SVG paths the server draws, and the whole page reconciles itself by morphing. Built on Rails 8 + Turbo 8.</p>
+    <div class="badges">
+      <span class="badge">Active Job → Turbo Stream</span>
+      <span class="badge">broadcasts_refreshes morph</span>
+      <span class="badge">server-rendered SVG</span>
+      <span class="badge">lazy Turbo Frames</span>
+    </div>
+    <div class="hero-spark" aria-hidden="true">
+      <svg viewBox="0 0 760 64" preserveAspectRatio="none">
+        <polygon points="4,60 4,38.2 70,30.1 137,44.6 204,22.3 271,33.9 338,18.4 405,40.7 472,26.5 539,35.2 606,16.8 673,31.4 756,24.9 756,60" fill="#e1dffb" opacity="0.7"></polygon>
+        <polyline points="4,38.2 70,30.1 137,44.6 204,22.3 271,33.9 338,18.4 405,40.7 472,26.5 539,35.2 606,16.8 673,31.4 756,24.9" fill="none" stroke="#4f46e5" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"></polyline>
+      </svg>
+    </div>
+  </div>
+</header>
+
+<main class="wrap">
+
+<p>Most "real-time dashboard" projects reach for the same shopping list: a polling loop on a timer, a WebSocket fan-out you hand-write, and a JavaScript charting library to draw the lines. <strong>Pulse</strong> does none of that. It is one of six self-contained Hotwire apps mounted inside a single Rails 8 codebase, and it exists to make one argument concretely: a live operations view — services with health, latency, error rate and throughput; sparklines that redraw as data lands; a deploy that streams its progress; incidents you acknowledge and resolve — is a server-rendered problem. The browser's only job is to morph the DOM.</p>
+
+<p>This is a walk through how it actually works, file by file, with the real code. Everything below is in the repository; nothing is aspirational.</p>
+
+<h2>What Pulse is</h2>
+
+<p>The dashboard lives at <code>/pulse</code> and is registered in a small showcase manifest. Its identity — name, tagline, accent color, and the Hotwire primitives it demonstrates — is one row in <code>app/lib/showcase.rb</code>:</p>
+
+<figure class="code">
+<figcaption>app/lib/showcase.rb</figcaption>
+<pre><code>App.new(
+  key: :pulse, name: "Pulse",
+  tagline: "Live ops &amp; incident dashboard",
+  domain: "Monitoring", accent: "#4f46e5", accent_soft: "#e1dffb", glyph: "P",
+  primitives: ["broadcasts_refreshes morph", "Active Job → Turbo Stream", "lazy frames", "View Transitions"],
+  repos: %w[turbo-rails turbo-music-drive turbo_power]
+)</code></pre>
+</figure>
+
+<p>The themeable shell reads that <code>accent</code> pair and re-skins the chrome by overriding a single CSS custom property, so the entire indigo palette you see in Pulse is one variable. The data model is two tables. A <code>Pulse::Service</code> carries a status, the three headline metrics, a position, and a JSON column of recent latency samples. A <code>Pulse::Incident</code> belongs to a service (optionally), with a severity and a status drawn from a fixed set:</p>
+
+<figure class="code">
+<figcaption>app/models/pulse/incident.rb</figcaption>
+<pre><code>STATUSES = %w[open ack resolved].freeze
+
+def severity_style = SEVERITY_STYLES.fetch(severity, SEVERITY_STYLES["sev3"])
+def resolved? = status == "resolved"</code></pre>
+</figure>
+
+<p>The dashboard controller is deliberately thin. It loads services by position, orders incidents so that resolved ones sink to the bottom, and excludes <code>down</code> services from the deploy picker:</p>
+
+<figure class="code">
+<figcaption>app/controllers/pulse/dashboard_controller.rb</figcaption>
+<pre><code>def index
+  @services = Pulse::Service.order(:position)
+  @incidents = Pulse::Incident.order(Arel.sql("status = 'resolved', started_at DESC"))
+  @services_for_deploy = @services.reject { |s| s.status == "down" }
+end</code></pre>
+</figure>
+
+<p>That <code>Arel.sql</code> ordering is worth pausing on. <code>status = 'resolved'</code> evaluates to a boolean that SQLite sorts as 0 then 1, so open and acknowledged incidents float to the top and resolved ones settle below — then <code>started_at DESC</code> breaks ties. It is a single sort expression doing what would otherwise be a partition-and-concatenate in application code.</p>
+
+<h2>The signature pattern: a background job <em>is</em> the broadcast source</h2>
+
+<p>The most important idea in Pulse is that nothing on the client asks "is there anything new?" on a timer. The page subscribes to one stream and waits. New state arrives because a background <strong>Active Job</strong> pushed it. The deploy flow is the cleanest demonstration.</p>
+
+<p>The view subscribes to a single named stream — defined as one constant on the module so every broadcaster and the view agree on the channel:</p>
+
+<figure class="code">
+<figcaption>app/models/pulse.rb &amp; app/views/pulse/dashboard/index.html.erb</figcaption>
+<pre><code>module Pulse
+  STREAM = "pulse_dashboard".freeze
+  # ...
+end
+
+&lt;%# Subscribe so jobs/incident changes morph the whole board live. %&gt;
+&lt;%= turbo_stream_from Pulse::STREAM %&gt;</code></pre>
+</figure>
+
+<p>When you submit the deploy form, the controller does almost nothing. It enqueues a job, immediately replaces the progress widget with a 0% bar via Turbo Stream, and returns. The slow work happens off the request thread:</p>
+
+<figure class="code">
+<figcaption>app/controllers/pulse/deploys_controller.rb</figcaption>
+<pre><code>def create
+  service = Pulse::Service.find(params[:service_id])
+  Pulse::DeployJob.perform_later(service.id)
+  respond_to do |format|
+    format.turbo_stream do
+      render turbo_stream: turbo_stream.replace(
+        "deploy_status", partial: "pulse/dashboard/deploy_status",
+        locals: { service: service, pct: 0, done: false, active: true }
+      )
+    end
+    format.html { redirect_to pulse_root_path }
+  end
+end</code></pre>
+</figure>
+
+<p>The job is where the pattern lives. It flips the service into a <code>deploying</code> state and broadcasts a <strong>refresh</strong> (more on that in a moment), then loops over a fixed set of progress percentages, broadcasting a <code>replace</code> of the small progress partial at each step. When it finishes, it flips the service back to <code>healthy</code> with an improved latency, broadcasts a "done" progress frame, and broadcasts a final refresh so the whole board reconciles:</p>
+
+<figure class="code">
+<figcaption>app/jobs/pulse/deploy_job.rb</figcaption>
+<pre><code>STEPS = [ 6, 18, 33, 49, 64, 78, 91, 100 ].freeze
+
+def perform(service_id)
+  service = Pulse::Service.find(service_id)
+  service.update!(status: "deploying")
+  Turbo::StreamsChannel.broadcast_refresh_to(Pulse::STREAM)
+
+  STEPS.each do |pct|
+    broadcast_progress(service, pct)
+    sleep 0.45
+  end
+
+  service.update!(
+    status: "healthy",
+    latency_ms: [ (service.latency_ms * 0.7).round, 40 ].max,
+    error_rate: 0.2
+  )
+  broadcast_progress(service, 100, done: true)
+  Turbo::StreamsChannel.broadcast_refresh_to(Pulse::STREAM)
+end
+
+private
+
+def broadcast_progress(service, pct, done: false)
+  Turbo::StreamsChannel.broadcast_replace_to(
+    Pulse::STREAM,
+    target: "deploy_status",
+    partial: "pulse/dashboard/deploy_status",
+    locals: { service: service, pct: pct, done: done, active: !done }
+  )
+end</code></pre>
+</figure>
+
+<p>Notice the two broadcast styles working together. The progress bar is a <strong>surgical replace</strong> — only the <code>deploy_status</code> fragment changes, eight times, so a targeted <code>broadcast_replace_to</code> is exactly right. But the <em>status pill</em> on the service card, the aggregate tiles at the top, the avg-latency math — all of that should change when a service goes from <code>deploying</code> back to <code>healthy</code>. Rather than hand-target each of those fragments, the job broadcasts a single <strong>refresh</strong> and lets the morph reconcile the entire page. One line covers everything the deploy touched that isn't the progress bar.</p>
+
+<p>The progress partial itself is a small state machine over those locals — active shows a bar, done shows a checkmark, neither shows the idle prompt:</p>
+
+<figure class="code">
+<figcaption>app/views/pulse/dashboard/_deploy_status.html.erb</figcaption>
+<pre><code>&lt;div id="deploy_status"&gt;
+  &lt;% if active %&gt;
+    &lt;span class="font-mono tabular-nums ..."&gt;&lt;%= pct %&gt;%&lt;/span&gt;
+    &lt;div class="... h-2 ... rounded-full ..."&gt;
+      &lt;div class="h-full ... transition-[width] duration-300 ease-out"
+           style="width: &lt;%= pct %&gt;%; background: var(--color-accent)"&gt;&lt;/div&gt;
+    &lt;/div&gt;
+  &lt;% elsif done %&gt;
+    &lt;span&gt;✓&lt;/span&gt;&lt;span&gt;Deployed &lt;%= service&amp;.name %&gt; — healthy.&lt;/span&gt;
+  &lt;% else %&gt;
+    &lt;p&gt;No deploy running. ...&lt;/p&gt;
+  &lt;% end %&gt;
+&lt;/div&gt;</code></pre>
+</figure>
+
+<p>The width animation is plain CSS (<code>transition-[width]</code>); the server just keeps shipping new percentages. Open the dashboard in two browser tabs, run a deploy in one, and the bar fills in <em>both</em> — because both are subscribed to <code>Pulse::STREAM</code> and the broadcast goes to every subscriber.</p>
+
+<p>The same shape powers <code>Pulse::SampleJob</code>, the "Simulate traffic" button. It jitters each non-down service's metrics over a few ticks, recomputes its status from thresholds, pushes a new latency sample onto the rolling window, and broadcasts a refresh after each tick:</p>
+
+<figure class="code">
+<figcaption>app/jobs/pulse/sample_job.rb</figcaption>
+<pre><code>def perform(ticks = 6)
+  ticks.times do
+    Pulse::Service.where.not(status: "down").find_each do |service|
+      base = service.latency_ms.clamp(40, 600)
+      service.latency_ms = (base + (rand(-1.0..1.0) * base * 0.25)).round.clamp(30, 800)
+      service.error_rate = (service.error_rate + rand(-0.3..0.5)).clamp(0.0, 8.0).round(1)
+      service.throughput = (service.throughput + rand(-200..250)).clamp(100, 6000)
+      service.status = service.error_rate &gt; 3 || service.latency_ms &gt; 400 ? "degraded" : "healthy"
+      service.push_sample(service.latency_ms)
+      service.save!
+    end
+    Turbo::StreamsChannel.broadcast_refresh_to(Pulse::STREAM)
+    sleep 0.6
+  end
+end</code></pre>
+</figure>
+
+<p>Each tick mutates real rows and broadcasts a refresh, so every connected dashboard morphs its sparklines, status pills, and aggregate tiles in lockstep — six times, half a second apart. The trigger endpoint is a textbook thin controller action: enqueue and return <code>204 No Content</code>.</p>
+
+<figure class="code">
+<figcaption>app/controllers/pulse/dashboard_controller.rb</figcaption>
+<pre><code>def simulate
+  Pulse::SampleJob.perform_later
+  head :no_content
+end</code></pre>
+</figure>
+
+<p class="pull">The job owns the truth. The controller only kicks it off; the stream carries the result. No timer ever runs in the browser.</p>
+
+<h2>Server-rendered SVG sparklines</h2>
+
+<p>There is no charting library anywhere in Pulse — no Chart.js, no D3, no canvas. The latency history for each service is a JSON array stored on the row, and the chart is an SVG path the server computes in a helper. Samples are kept as a rolling window directly on the model:</p>
+
+<figure class="code">
+<figcaption>app/models/pulse/service.rb</figcaption>
+<pre><code>def sample_points
+  JSON.parse(samples)
+rescue JSON::ParserError
+  []
+end
+
+# Push a new latency sample, keeping a rolling window.
+def push_sample(value, window: 24)
+  points = (sample_points + [ value ]).last(window)
+  self.samples = points.to_json
+end</code></pre>
+</figure>
+
+<p>Twenty-four points, oldest dropped as new ones arrive. The <code>SampleJob</code> calls <code>push_sample(service.latency_ms)</code> every tick, so the series is always the most recent two-dozen readings. Turning that array into a chart is the entire contents of <code>PulseHelper</code>:</p>
+
+<figure class="code">
+<figcaption>app/helpers/pulse_helper.rb</figcaption>
+<pre><code>def sparkline(points, width: 240, height: 48, pad: 4)
+  points = points.map(&amp;:to_f)
+  return { line: "", area: "", w: width, h: height } if points.size &lt; 2
+
+  min = points.min
+  max = points.max
+  span = (max - min).zero? ? 1.0 : (max - min)
+  step = (width - pad * 2) / (points.size - 1).to_f
+
+  coords = points.each_with_index.map do |v, i|
+    x = pad + i * step
+    y = (height - pad) - ((v - min) / span) * (height - pad * 2)
+    [ x.round(1), y.round(1) ]
+  end
+
+  line = coords.map { |x, y| "#{x},#{y}" }.join(" ")
+  area = "#{coords.first[0]},#{height - pad} " + line + " #{coords.last[0]},#{height - pad}"
+  { line: line, area: area, w: width, h: height }
+end</code></pre>
+</figure>
+
+<p>The math is a min/max normalization. Each value maps to a <code>y</code> between the padded top and bottom of the box; the <code>x</code> steps evenly across the width. The SVG <code>y</code> axis grows downward, which is why the formula subtracts the normalized height from <code>(height - pad)</code> — higher latency draws higher on the card. It returns two strings: <code>line</code> is the polyline points, and <code>area</code> is the same points wrapped down to the baseline at both ends so it closes into a filled polygon. The service partial renders them directly:</p>
+
+<figure class="code">
+<figcaption>app/views/pulse/dashboard/_service.html.erb</figcaption>
+<pre><code>&lt;% spark = sparkline(service.sample_points) %&gt;
+&lt;svg viewBox="0 0 &lt;%= spark[:w] %&gt; &lt;%= spark[:h] %&gt;" class="h-12 w-full" preserveAspectRatio="none"&gt;
+  &lt;% if spark[:area].present? %&gt;
+    &lt;polygon points="&lt;%= spark[:area] %&gt;" fill="var(--color-accent-soft)" opacity="0.7"&gt;&lt;/polygon&gt;
+    &lt;polyline points="&lt;%= spark[:line] %&gt;" fill="none" stroke="var(--color-accent)"
+              stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"&gt;&lt;/polyline&gt;
+  &lt;% end %&gt;
+&lt;/svg&gt;</code></pre>
+</figure>
+
+<p>The fill is <code>var(--color-accent-soft)</code> and the stroke is <code>var(--color-accent)</code> — the same theme variables the shell sets per app, so the sparkline is automatically indigo in Pulse without a single hard-coded color. The sparkline at the very top of this page is exactly this output shape: a closed polygon under a polyline. Because the SVG is part of the server-rendered page, when a refresh broadcast lands and the DOM morphs, the <code>points</code> attributes change in place and the line simply redraws. There is no chart instance to update, no <code>.render()</code> call, nothing to tear down — the morph <em>is</em> the chart update.</p>
+
+<h2>Morphing dashboards</h2>
+
+<p>The reason a whole-page refresh broadcast doesn't feel like a reload is Turbo 8 morphing. The layout opts every navigation and refresh into morph semantics with three meta tags:</p>
+
+<figure class="code">
+<figcaption>app/views/layouts/application.html.erb</figcaption>
+<pre><code>&lt;meta name="turbo-refresh-method" content="morph"&gt;
+&lt;meta name="turbo-refresh-scroll" content="preserve"&gt;
+&lt;meta name="view-transition" content="same-origin"&gt;</code></pre>
+</figure>
+
+<p>When <code>broadcast_refresh_to</code> fires, each subscribed browser re-fetches the current page and reconciles its existing DOM against the new HTML using idiomorph rather than swapping the body wholesale. Nodes that didn't change are left alone; scroll position and focus are preserved. If you're hovering an Acknowledge button or mid-scroll down the incident list when a sample tick lands, you stay exactly where you were while the sparklines and metric numbers update underneath you. On browsers that support the View Transitions API, the change is wrapped in a same-origin transition for a soft cross-fade; everywhere else it degrades silently.</p>
+
+<p>Incidents participate in the same morph. Acknowledging or resolving one is a thin update that broadcasts a refresh and returns <code>204</code> — the validation against the fixed status set lives right in the action:</p>
+
+<figure class="code">
+<figcaption>app/controllers/pulse/incidents_controller.rb</figcaption>
+<pre><code>def update
+  incident = Pulse::Incident.find(params[:id])
+  if Pulse::Incident::STATUSES.include?(params[:status])
+    incident.update!(status: params[:status])
+    Turbo::StreamsChannel.broadcast_refresh_to(Pulse::STREAM)
+  end
+  head :no_content
+end</code></pre>
+</figure>
+
+<p>Resolve an incident and the refresh re-renders the board; the <code>Arel</code> ordering from the controller re-sorts it to the bottom of the list, where the partial renders it dimmed and struck through. The state transition, the re-sort, and the visual treatment all flow from one broadcast.</p>
+
+<h2>Lazy panels</h2>
+
+<p>The "Recent events" feed at the bottom of the dashboard doesn't load with the page. It's a deferred Turbo Frame with a <code>src</code> and <code>loading: :lazy</code>, so the browser only requests it when it scrolls into view, showing a placeholder until then:</p>
+
+<figure class="code">
+<figcaption>app/views/pulse/dashboard/index.html.erb</figcaption>
+<pre><code>&lt;%= turbo_frame_tag :pulse_events, src: pulse_panel_path("events"), loading: :lazy do %&gt;
+  &lt;div class="..."&gt;Loading events…&lt;/div&gt;
+&lt;% end %&gt;</code></pre>
+</figure>
+
+<p>The frame resolves to a generic panel route — <code>get "panels/:panel", to: "dashboard#panel"</code> — which renders the requested partial. The events panel derives a recent-activity feed straight from the services' <code>updated_at</code> timestamps, so it reflects the same data the sparklines do, formatted as a log:</p>
+
+<figure class="code">
+<figcaption>app/controllers/pulse/dashboard_controller.rb</figcaption>
+<pre><code>def recent_events
+  Pulse::Service.order(updated_at: :desc).flat_map do |s|
+    [ { at: s.updated_at, service: s.name,
+        text: "p95 #{s.latency_ms}ms · #{s.error_rate}% err · #{s.throughput} rps" } ]
+  end.first(12)
+end</code></pre>
+</figure>
+
+<p>Deferring the panel keeps the initial render lean — the expensive or below-the-fold piece is a separate request the page makes on its own, with no JavaScript to wire it up.</p>
+
+<h2>Why these choices are good ones</h2>
+
+<p>A few decisions compound into something maintainable:</p>
+
+<ul>
+  <li><strong>Jobs as the single broadcast source.</strong> State changes and the broadcasts announcing them live together in the job. There's no scatter of <code>broadcast</code> calls across callbacks, controllers, and views to keep in sync — if you want to know what makes the board move, you read three job files.</li>
+  <li><strong>One <code>STREAM</code> constant.</strong> The channel name is defined once on the module. The view subscribes to it, every broadcaster targets it. Rename it in one place and nothing drifts.</li>
+  <li><strong>Thin endpoints.</strong> <code>simulate</code> and <code>incidents#update</code> return <code>204 No Content</code>; <code>deploys#create</code> enqueues and replaces one fragment. The HTTP request is never holding the connection open while work happens — the stream delivers the result asynchronously.</li>
+  <li><strong>The server owns rendering, including charts.</strong> Sparklines are an ERB helper and an SVG element. There is no client charting dependency to version, audit, or theme. The chart inherits the page's CSS variables for free and updates by morph.</li>
+  <li><strong>Idempotent, plausible seed data.</strong> <code>Pulse.seed!</code> returns early if any service exists, and seeds each one with a synthesized latency series so the sparklines look alive on first load:</li>
+</ul>
+
+<figure class="code">
+<figcaption>app/models/pulse.rb</figcaption>
+<pre><code>def self.seed!
+  return if Service.exists?
+  # ... services with samples: jitter(74).to_json, etc.
+end
+
+# A plausible-looking series of recent latency samples around a baseline.
+def self.jitter(base, count = 24)
+  (1..count).map { |i| [ (base + Math.sin(i / 2.0) * base * 0.18 + (i % 5 - 2) * base * 0.05).round, 1 ].max }
+end</code></pre>
+</figure>
+
+<p>The <code>jitter</code> helper layers a sine wave and a small sawtooth over a baseline to produce 24 sample points that read as real telemetry — never below 1 — without any external data.</p>
+
+<h2>Why this matters for the work we do</h2>
+
+<p>Pulse is a portfolio piece, but the pattern is the product. The "background job streams progress to the page over a named stream, and a refresh morphs the rest of the view" shape is the exact thing most business software needs and usually over-builds:</p>
+
+<ul>
+  <li><strong>Admin panels and internal dashboards</strong> that must reflect live state — orders, queue depth, fleet health — without every analyst's browser hammering an endpoint on a timer.</li>
+  <li><strong>Long-running work surfaced to users live:</strong> a CSV import, a report generation, a deploy, a batch reconciliation. The deploy progress bar in Pulse is a literal template for "show the user a job filling up" — enqueue, stream percentages, finish with a refresh.</li>
+  <li><strong>Real-time monitoring views</strong> where the metrics and their charts are owned by the server, so there's no front-end charting stack to staff, secure, or keep on a release cadence.</li>
+</ul>
+
+<p>The hiring argument is the maintainability one. There is no separate front-end application here — no build step beyond importmap and a Tailwind gem, no chart library, no client state store, no polling logic to debug. A Rails engineer can read the whole feature: two models, three controllers, two jobs, one helper, a handful of partials. That is a smaller surface to own, a shorter path from "we need a live view of X" to shipping it, and one fewer specialty to hire for.</p>
+
+<h2>Honest trade-offs and production hardening</h2>
+
+<div class="tradeoff">
+<h3>The job sleeps, and a sleeping job holds a worker</h3>
+<p>Both jobs use <code>sleep</code> between broadcasts (<code>sleep 0.45</code> in the deploy, <code>sleep 0.6</code> per tick in the sampler). That's perfect for a demo — it paces the animation visibly — but a sleeping job occupies a Solid Queue worker for its whole duration. In production you would not pad real work with sleeps; progress would be broadcast as actual stages complete, and a slow multi-minute job would be designed so it doesn't starve the worker pool (more workers, a dedicated queue, or breaking the work into enqueued stages).</p>
+</div>
+
+<div class="tradeoff">
+<h3>The metrics are simulated</h3>
+<p>The numbers come from <code>jitter</code> and from <code>rand</code> in <code>SampleJob</code>; there is no real telemetry ingestion. A production Pulse would feed <code>push_sample</code> from an actual metrics source — a periodic collector, a webhook, or a stream consumer — but the rendering and broadcast path downstream of <code>push_sample</code> would not change at all. That's the point: the display layer is already production-shaped.</p>
+</div>
+
+<div class="tradeoff">
+<h3>No authentication or authorization</h3>
+<p>The dashboard is open, and the deploy/simulate/incident actions are unauthenticated by design for a public demo. Anything resembling this in production needs access control on the mutating endpoints and likely per-tenant scoping of the stream so one customer's broadcasts don't reach another's subscribers.</p>
+</div>
+
+<div class="tradeoff">
+<h3>Sparkline fidelity is intentionally coarse</h3>
+<p>The chart is a 24-point min/max-normalized polyline with no axes, gridlines, or tooltips. That's appropriate for an at-a-glance trend indicator and nothing more. If a view needs precise reads, hover values, or a fixed scale across services, the SVG approach still holds — you'd extend the helper — but you'd be writing that yourself rather than getting it from a charting library.</p>
+</div>
+
+<div class="tradeoff">
+<h3>Solid Queue and Solid Cable on one SQLite box</h3>
+<p>The whole stack — jobs, Action Cable, cache — runs on SQLite with the Solid adapters and no external services. That's a genuine strength for a single-box deploy and a real simplification. At higher broadcast volume or across multiple app servers you would reassess the Cable backend and queue throughput; the abstractions (Active Job, Action Cable) stay the same, so it's a configuration change, not a rewrite.</p>
+</div>
+
+<p>None of these are surprises hiding in the code — they're the expected boundary between a faithful demo and a hardened system, and the architecture is built so that crossing that boundary is mostly swapping the data source and adding policy, not redrawing the design.</p>
+
+<hr>
+
+<p>Pulse makes a narrow, sharp claim: the live dashboard you were about to build with a polling loop and a charting library is a Rails problem. Enqueue a job, broadcast over one stream, render the chart as SVG, and let the page morph. The result is fewer moving parts, one language to maintain, and a feature any Rails engineer can pick up and extend.</p>
+
+</main>
+
+<footer class="stack">
+  <div class="wrap">
+    <p class="eyebrow">The stack</p>
+    <div class="stack-grid">
+      <span class="stack-item">Rails 8.1</span>
+      <span class="stack-item">Turbo 8 morphing</span>
+      <span class="stack-item">Stimulus</span>
+      <span class="stack-item">Active Job + Solid Queue</span>
+      <span class="stack-item">Action Cable + Solid Cable</span>
+      <span class="stack-item">importmap</span>
+      <span class="stack-item">Tailwind v4</span>
+      <span class="stack-item">SQLite</span>
+    </div>
+    <p class="brand">Levelbrook Consulting</p>
+    <p class="muted">Senior Ruby on Rails &amp; Hotwire engineering. &nbsp;·&nbsp; <a href="mailto:levelbrookteam@gmail.com">levelbrookteam@gmail.com</a></p>
+  </div>
+</footer>
+
+</body>
+</html>

@@ -24,7 +24,6 @@ module Seeds
     ensure_channels(members)
     seed_project!("Platform", "LB", "platform", members, board_a)
     seed_project!("Mobile App", "MOB", "mobile", members, board_b)
-    Activity.reset!
   end
 
   def reset_project!(project)
@@ -32,7 +31,6 @@ module Seeds
     project.update!(issues_seq: 0)
     members = Member.order(:id).to_a
     seed_project!(project.name, project.key, project.slug, members, project.slug == "mobile" ? board_b : board_a, project)
-    Activity.reset!
   end
 
   # --- builders ---------------------------------------------------------

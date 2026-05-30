@@ -42,5 +42,4 @@ class IssuesController < ApplicationController
   def permitted_field
     FIELDS.include?(params[:field]) ? params[:field] : (raise ActionController::RoutingError, "unknown field")
   end
-
 end

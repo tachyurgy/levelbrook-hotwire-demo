@@ -1,0 +1,587 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Building Workspace — a Jira-grade delivery board on Hotwire | Levelbrook Consulting</title>
+<meta name="author" content="Levelbrook Consulting">
+<meta name="description" content="A deep technical walkthrough of Workspace: a real-time Kanban delivery board built with Rails 8, Turbo 8 morphing, and Stimulus — SPA-grade UX with server-rendered HTML and very little JavaScript.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;600;700;800&family=Inter+Tight:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --accent: #c8402f;
+    --accent-soft: #f5e3df;
+    --ink: #1a1614;
+    --ink-soft: #423b37;
+    --ink-faint: #8a807a;
+    --surface: #ffffff;
+    --paper: #faf8f6;
+    --hair: #ece6e1;
+    --code-bg: #f7f3f0;
+    --maxw: 720px;
+  }
+  * { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; }
+  body {
+    margin: 0;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: "Inter Tight", system-ui, sans-serif;
+    font-size: 18px;
+    line-height: 1.72;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+  .wrap { max-width: var(--maxw); margin: 0 auto; padding: 0 24px; }
+
+  /* ---- Hero ---- */
+  header.hero {
+    border-bottom: 1px solid var(--hair);
+    background:
+      radial-gradient(120% 100% at 100% 0%, var(--accent-soft) 0%, rgba(245,227,223,0) 55%),
+      var(--surface);
+  }
+  .hero-inner { max-width: var(--maxw); margin: 0 auto; padding: 72px 24px 64px; }
+  .brand {
+    display: inline-flex; align-items: center; gap: 10px;
+    font-family: "JetBrains Mono", monospace; font-size: 12px;
+    letter-spacing: 0.14em; text-transform: uppercase; color: var(--ink-faint);
+    margin-bottom: 28px;
+  }
+  .brand .mark {
+    display: inline-grid; place-items: center;
+    width: 26px; height: 26px; border-radius: 7px;
+    background: var(--accent); color: #fff;
+    font-family: "Bricolage Grotesque", sans-serif; font-weight: 800; font-size: 15px;
+  }
+  h1 {
+    font-family: "Bricolage Grotesque", sans-serif;
+    font-weight: 800; font-size: clamp(34px, 6vw, 54px);
+    line-height: 1.04; letter-spacing: -0.02em; margin: 0 0 18px;
+  }
+  .tagline { font-size: 21px; color: var(--ink-soft); max-width: 38ch; margin: 0 0 32px; }
+  .badges { display: flex; flex-wrap: wrap; gap: 8px; }
+  .badge {
+    font-family: "JetBrains Mono", monospace; font-size: 12.5px;
+    padding: 6px 11px; border-radius: 999px;
+    background: var(--accent-soft); color: #8c2b1e;
+    border: 1px solid #eccfc8;
+  }
+
+  /* ---- Body typography ---- */
+  main { padding: 56px 0 40px; }
+  h2 {
+    font-family: "Bricolage Grotesque", sans-serif;
+    font-weight: 700; font-size: 30px; letter-spacing: -0.015em;
+    line-height: 1.15; margin: 64px 0 6px;
+    padding-top: 8px;
+  }
+  h2 .num {
+    display: block; font-family: "JetBrains Mono", monospace;
+    font-size: 13px; font-weight: 500; color: var(--accent);
+    letter-spacing: 0.1em; margin-bottom: 10px;
+  }
+  h3 {
+    font-family: "Bricolage Grotesque", sans-serif;
+    font-weight: 700; font-size: 21px; letter-spacing: -0.01em;
+    margin: 40px 0 4px;
+  }
+  p { margin: 18px 0; }
+  a { color: var(--accent); text-decoration-thickness: 1px; text-underline-offset: 2px; }
+  strong { font-weight: 600; color: var(--ink); }
+  em { color: var(--ink-soft); }
+  ul, ol { padding-left: 22px; }
+  li { margin: 8px 0; }
+  code {
+    font-family: "JetBrains Mono", monospace; font-size: 0.86em;
+    background: var(--code-bg); padding: 2px 6px; border-radius: 5px;
+    color: #8c2b1e; border: 1px solid var(--hair);
+  }
+  .lead { font-size: 20px; color: var(--ink-soft); }
+
+  /* ---- Code blocks ---- */
+  figure.code { margin: 26px 0; }
+  figure.code figcaption {
+    font-family: "JetBrains Mono", monospace; font-size: 12px;
+    color: var(--ink-faint); padding: 7px 14px;
+    background: var(--surface); border: 1px solid var(--hair);
+    border-bottom: none; border-radius: 9px 9px 0 0;
+    display: flex; align-items: center; gap: 8px;
+  }
+  figure.code figcaption::before {
+    content: ""; width: 8px; height: 8px; border-radius: 2px;
+    background: var(--accent); flex: none;
+  }
+  pre {
+    margin: 0; overflow-x: auto;
+    background: var(--code-bg);
+    border: 1px solid var(--hair);
+    border-left: 3px solid var(--accent);
+    border-radius: 0 9px 9px 9px;
+    padding: 16px 18px;
+  }
+  figure.code pre { border-radius: 0 0 9px 9px; border-left: 3px solid var(--accent); }
+  pre code {
+    background: none; border: none; padding: 0; color: var(--ink);
+    font-size: 13.5px; line-height: 1.62;
+  }
+  .cmt { color: #9b9089; }
+  .kw  { color: #8c2b1e; }
+
+  /* ---- Pull / aside ---- */
+  .callout {
+    margin: 30px 0; padding: 20px 24px;
+    background: var(--surface); border: 1px solid var(--hair);
+    border-left: 3px solid var(--accent); border-radius: 0 10px 10px 0;
+  }
+  .callout p:first-child { margin-top: 0; }
+  .callout p:last-child { margin-bottom: 0; }
+  .callout .k {
+    font-family: "JetBrains Mono", monospace; font-size: 11px;
+    text-transform: uppercase; letter-spacing: 0.12em;
+    color: var(--accent); display: block; margin-bottom: 8px;
+  }
+
+  hr { border: none; border-top: 1px solid var(--hair); margin: 56px 0; }
+
+  /* ---- Footer ---- */
+  footer {
+    border-top: 1px solid var(--hair); background: var(--surface);
+    padding: 48px 0 64px;
+  }
+  .stack-grid {
+    display: grid; grid-template-columns: repeat(2, 1fr); gap: 2px 28px;
+    font-family: "JetBrains Mono", monospace; font-size: 13px;
+    margin: 22px 0 32px;
+  }
+  .stack-grid div { padding: 9px 0; border-bottom: 1px solid var(--hair); }
+  .stack-grid .lbl { color: var(--ink-faint); }
+  .stack-grid .val { color: var(--ink); }
+  .foot-brand { font-size: 14px; color: var(--ink-faint); }
+  .foot-brand strong { color: var(--ink); }
+  @media (max-width: 560px) { .stack-grid { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <div class="hero-inner">
+    <span class="brand"><span class="mark">L</span> Levelbrook Consulting · Engineering Notes</span>
+    <h1>Workspace: a Jira-grade delivery board, built on Hotwire</h1>
+    <p class="tagline">SPA-grade interactivity — drag-and-drop, live multiplayer sync, command palette, inline editing — with server-rendered HTML and remarkably little JavaScript.</p>
+    <div class="badges">
+      <span class="badge">SortableJS drag</span>
+      <span class="badge">broadcasts_refreshes morph</span>
+      <span class="badge">Turbo Frame drawer</span>
+      <span class="badge">instant inline edit</span>
+    </div>
+  </div>
+</header>
+
+<main>
+<div class="wrap">
+
+<p class="lead">Workspace is one app inside a Rails 8 Hotwire showcase — a team delivery board in the spirit of Linear, Jira, or Basecamp. You drag a card between columns and every other open browser re-settles to match. You click a card and a detail drawer lazy-loads; you edit a field in place with zero perceptible latency; comments stream in live. There is a debounced search frame, a ⌘K palette, an infinite-scroll activity feed, and a sign-up form that validates field-by-field against the server.</p>
+
+<p>What makes it worth writing up is not the feature list — it's that <em>almost none of it is hand-written client state</em>. The interactivity comes from a small number of Hotwire primitives composed carefully. This post walks the real code, file by file, and explains the engineering decisions behind each one.</p>
+
+<h2><span class="num">01 / DATA MODEL</span>What the app actually is</h2>
+
+<p>The domain is small and conventional. A <code>Project</code> has ordered <code>Column</code>s; each column has ordered <code>Issue</code>s; issues have <code>Comment</code>s and an optional <code>Member</code> assignee. That's the whole spine of the board.</p>
+
+<figure class="code">
+<figcaption>app/models/project.rb</figcaption>
+<pre><code>class Project &lt; ApplicationRecord
+  has_many :columns, -&gt; { order(:position) }, dependent: :destroy
+  has_many :issues, through: :columns
+
+  <span class="cmt"># When an issue is reordered/moved, the project touch triggers a single</span>
+  <span class="cmt"># page-refresh broadcast that morphs the board for every connected client.</span>
+  broadcasts_refreshes
+
+  def to_param = slug
+
+  def next_issue_number
+    with_lock do
+      increment!(:issues_seq)
+      issues_seq
+    end
+  end
+end</code></pre>
+</figure>
+
+<p>Two details here pay off across the whole app. First, <code>broadcasts_refreshes</code> — the single line that makes the board multiplayer (more on it in section&nbsp;02). Second, <code>next_issue_number</code> wraps a database row lock around a counter so that issue keys (<code>LB-14</code>, <code>MOB-3</code>) are allocated atomically. The sequence lives on the project (<code>issues_seq</code>) rather than being derived from <code>COUNT(*)</code>, so deleting an issue never recycles a key — exactly how you'd want a real tracker to behave.</p>
+
+<p>The board's "live" behaviour is wired by ordinary association options, not callbacks:</p>
+
+<figure class="code">
+<figcaption>app/models/column.rb &amp; app/models/issue.rb (excerpts)</figcaption>
+<pre><code><span class="cmt"># column.rb</span>
+belongs_to :project, touch: true
+has_many :issues, -&gt; { order(:position) }, dependent: :destroy
+
+<span class="cmt"># issue.rb</span>
+belongs_to :column, touch: true
+delegate :project, to: :column
+
+def key
+  "#{project.key}-#{number}"
+end</code></pre>
+</figure>
+
+<p>Because <code>Issue belongs_to :column, touch: true</code> and <code>Column belongs_to :project, touch: true</code>, any write to an issue bubbles a <code>touch</code> up to its project. The project's <code>broadcasts_refreshes</code> turns that touch into a broadcast. There is zero hand-written broadcast code on the move path — the association graph does it.</p>
+
+<h2><span class="num">02 / THE SIGNATURE PATTERN</span>Drag &rarr; PUT &rarr; morph everywhere</h2>
+
+<p>This is the demo's centerpiece, and the part that most cleanly separates "knows Hotwire" from "has read about Hotwire." Drag a card in one window; it moves in <em>every</em> connected window. Here is the entire client side:</p>
+
+<figure class="code">
+<figcaption>app/javascript/controllers/sortable_controller.js</figcaption>
+<pre><code>import { Controller } from "@hotwired/stimulus"
+import Sortable from "sortablejs"
+import { put } from "@rails/request.js"
+
+<span class="cmt">// Drag state is DOM-resident so the morph never fights the drag.</span>
+export default class extends Controller {
+  static values = { group: String }
+
+  connect() {
+    this.sortable = Sortable.create(this.element, {
+      group: this.groupValue || "shared",
+      animation: 150,
+      onEnd: this.onEnd.bind(this)
+    })
+  }
+
+  async onEnd(event) {
+    const card = event.item
+    const url = card.dataset.positionUrl
+    const columnId = event.to.dataset.columnId
+    const position = event.newIndex
+    if (!url) return
+
+    await put(url, {
+      body: JSON.stringify({ column_id: columnId, position }),
+      contentType: "application/json"
+    })
+  }
+}</code></pre>
+</figure>
+
+<p>SortableJS owns the drag interaction and mutates the DOM directly. On drop, the controller reads three values straight off the dropped node (<code>data-position-url</code>, the destination column's <code>data-column-id</code>, and SortableJS's computed <code>newIndex</code>) and fires a single <code>PUT</code> via <code>@rails/request.js</code> — which transparently includes the CSRF token. That's the whole client contribution: no optimistic store, no diffing, no rollback logic.</p>
+
+<p>The server endpoint is deliberately thin. It moves the issue, renumbers the destination column to match what the user just did, and returns <code>204 No Content</code>:</p>
+
+<figure class="code">
+<figcaption>app/controllers/issues/positions_controller.rb</figcaption>
+<pre><code>def update
+  issue = Issue.find(params[:issue_id])
+  column = Column.find(params[:column_id])
+  position = params[:position].to_i
+
+  Issue.transaction do
+    issue.update!(column: column)
+    reorder(column, issue, position)
+  end
+
+  head :no_content
+end
+
+<span class="cmt"># Persist the dropped order exactly as the DOM now shows it.</span>
+def reorder(column, moved_issue, target_index)
+  others = column.issues.where.not(id: moved_issue.id).order(:position).to_a
+  <span class="cmt"># Clamp so an out-of-range drop appends instead of padding with nils.</span>
+  index = target_index.clamp(0, others.size)
+  others.insert(index, moved_issue)
+  others.each_with_index do |issue, index|
+    issue.update_column(:position, index) if issue.position != index
+  end
+end</code></pre>
+</figure>
+
+<p>The <code>reorder</code> logic is small but careful. It pulls the destination column's other issues in order, clamps the drop index into <code>0..size</code> (the comment is explicit about why: <code>Array#insert</code> past the end pads with <code>nil</code>s), inserts the moved card, and rewrites positions — but only for rows whose position actually changed (<code>if issue.position != index</code>), avoiding redundant writes. Everything runs in a transaction, so a half-applied reorder can't be observed.</p>
+
+<p>Now the magic step. The endpoint returns <code>204</code> and writes no HTML. So how does every browser update? Each board view subscribes to the project's refresh stream:</p>
+
+<figure class="code">
+<figcaption>app/views/projects/show.html.erb (excerpt)</figcaption>
+<pre><code><span class="cmt">&lt;%# Subscribe to the project's refresh stream. When any issue moves, the model %&gt;</span>
+<span class="cmt">&lt;%# broadcasts a page refresh and Turbo morphs this board in place. %&gt;</span>
+&lt;%= turbo_stream_from @project %&gt;
+
+&lt;div id="&lt;%= dom_id(@project, :board) %&gt;" class="flex gap-4 overflow-x-auto pb-4"&gt;
+  &lt;% @columns.each do |column| %&gt;
+    &lt;%= render "columns/column", column: column %&gt;
+  &lt;% end %&gt;
+&lt;/div&gt;</code></pre>
+</figure>
+
+<p>The transaction commits &rarr; the <code>touch</code> chain fires &rarr; <code>broadcasts_refreshes</code> emits one <code>&lt;turbo-stream action="refresh"&gt;</code> to every subscriber. Each browser then re-requests the current page and <strong>morphs</strong> the DOM into the new HTML using idiomorph, rather than replacing it. The layout opts the whole app into this:</p>
+
+<figure class="code">
+<figcaption>app/views/layouts/application.html.erb (excerpt)</figcaption>
+<pre><code>&lt;meta name="turbo-refresh-method" content="morph"&gt;
+&lt;meta name="turbo-refresh-scroll" content="preserve"&gt;
+&lt;meta name="view-transition" content="same-origin"&gt;</code></pre>
+</figure>
+
+<div class="callout">
+  <p><span class="k">Why this is correct, not just clever</span></p>
+  <p>The subtle reason this works: <strong>the drag state lives in the DOM</strong>. SortableJS has already moved the node by the time the morph arrives. Morphing reconciles the existing tree toward the server's HTML — so for the browser that did the drag, the incoming HTML already matches what's on screen, and the morph is a no-op on those nodes. There is no "snap back" from the server, no fighting between an optimistic update and an authoritative one. The other browsers, whose DOM <em>doesn't</em> match yet, get exactly the moved cards reconciled in place while their scroll position and focus are preserved. One broadcast, every client converges, and the client that initiated never sees a flicker.</p>
+</div>
+
+<h2><span class="num">03 / THE ISSUE DRAWER</span>A lazy Turbo Frame &lt;dialog&gt;</h2>
+
+<p>Clicking a card opens a detail drawer. The card is just a link that targets a named frame:</p>
+
+<figure class="code">
+<figcaption>app/views/issues/_card.html.erb (excerpt)</figcaption>
+<pre><code>&lt;%= link_to issue_path(issue),
+      id: dom_id(issue),
+      data: { turbo_frame: "modal",
+              position_url: issue_position_path(issue),
+              turbo_action: "advance" },
+      class: "group block cursor-grab ..." do %&gt;</code></pre>
+</figure>
+
+<p>One element carries three behaviours at once: it's the SortableJS drag handle (<code>data-position-url</code> is the PUT target), it's a navigable link, and <code>data-turbo-frame="modal"</code> routes its response into the persistent modal frame defined once in the layout:</p>
+
+<figure class="code">
+<figcaption>app/views/shared/_modal.html.erb</figcaption>
+<pre><code>&lt;div data-controller="modal"
+     data-action="keydown.esc@window-&gt;modal#close turbo:frame-load-&gt;modal#opened"
+     data-turbo-permanent id="modal_wrapper"&gt;
+  &lt;dialog data-modal-target="dialog"
+          data-action="click-&gt;modal#backdropClose close-&gt;modal#dismiss"
+          class="... backdrop:backdrop-blur-sm"&gt;
+    &lt;%= turbo_frame_tag "modal", class: "block" %&gt;
+  &lt;/dialog&gt;
+&lt;/div&gt;</code></pre>
+</figure>
+
+<p>The frame starts empty. When a card is clicked, Turbo fetches <code>issues#show</code> and splices the response into <code>#modal</code>; the resulting <code>turbo:frame-load</code> event triggers <code>modal#opened</code>, which calls the native <code>&lt;dialog&gt;.showModal()</code> — giving us a real top-layer modal with a backdrop, focus trapping, and ESC handling for free. On close the controller clears the frame so the next card always loads fresh. The wrapper is <code>data-turbo-permanent</code>, so the dialog element itself survives Turbo navigations and isn't re-created on every board morph.</p>
+
+<h3>Inline frame-swap field editing</h3>
+
+<p>Inside the drawer, each editable attribute is its own Turbo Frame with its own tiny edit lifecycle. The controller enforces a strict allowlist:</p>
+
+<figure class="code">
+<figcaption>app/controllers/issues_controller.rb (excerpt)</figcaption>
+<pre><code>FIELDS = %w[title description status assignee].freeze
+
+def edit_field
+  @field = permitted_field
+  template = params[:cancel] ? @field : "#{@field}_edit"
+  render partial: "issues/fields/#{template}", locals: { issue: @issue, members: @members }
+end
+
+def update_field
+  @field = permitted_field
+  case @field
+  when "status"
+    target = Column.find(params.dig(:issue, :column_id))
+    @issue.update(column: target, position: target.issues.count)
+  when "assignee"
+    @issue.update(assignee_id: params.dig(:issue, :assignee_id).presence)
+  else
+    @issue.update(@field =&gt; params.dig(:issue, @field))
+  end
+  render partial: "issues/fields/#{@field}", locals: { issue: @issue }
+end
+
+def permitted_field
+  FIELDS.include?(params[:field]) ? params[:field] : (raise ActionController::RoutingError)
+end</code></pre>
+</figure>
+
+<p>The <code>permitted_field</code> guard is the load-bearing security detail: the field name is interpolated into a partial path (<code>issues/fields/#{@field}</code>), so it <em>must</em> be validated against a fixed allowlist before it reaches the renderer — otherwise it's a path-traversal footgun. The code raises a routing error on anything not in <code>FIELDS</code>. Changing the status remaps the issue to the chosen column and appends it (<code>position: target.issues.count</code>); the assignee path normalises a blank selection to <code>nil</code>; everything else is a plain attribute update. Each branch re-renders just that field's display partial — and because the update touched the issue, the board still morphs for everyone else.</p>
+
+<h3>Streamed comments</h3>
+
+<p>Comments stream in without the controller knowing anything about who's watching. The model does the broadcast:</p>
+
+<figure class="code">
+<figcaption>app/models/comment.rb</figcaption>
+<pre><code>after_create_commit do
+  broadcast_append_to issue,
+    target: ActionView::RecordIdentifier.dom_id(issue, :comments),
+    partial: "comments/comment"
+end</code></pre>
+</figure>
+
+<p>The open drawer subscribes with <code>&lt;%= turbo_stream_from @issue %&gt;</code> and renders a container at <code>dom_id(@issue, :comments)</code>. When anyone posts, the after-commit callback appends the new comment to that target for <em>every</em> viewer of the issue. The controller, meanwhile, only resets the composer for the submitter — it relies entirely on the broadcast for the actual append. This is the deliberate counterpoint to the board: a single small fragment is being added, so a surgical <code>broadcast_append_to</code> is the right tool, where the board's wholesale reorder calls for a morphing refresh.</p>
+
+<h2><span class="num">04 / ZERO-LATENCY INLINE EDIT</span>Both states, rendered up front</h2>
+
+<p>Some fields (title, description) use a sharper trick than a frame round-trip. The display markup and the edit form are <em>both</em> rendered into the frame on first paint; the form is just hidden. Entering edit mode is a class toggle — no server hop at all.</p>
+
+<figure class="code">
+<figcaption>app/javascript/controllers/inline_edit_controller.js (excerpt)</figcaption>
+<pre><code><span class="cmt">// Clicking the display reveals the form *instantly* (no server round-trip to</span>
+<span class="cmt">// enter edit mode — that hop was the lag). Submitting still PATCHes and the</span>
+<span class="cmt">// server returns the updated display partial, so the server stays authoritative.</span>
+export default class extends Controller {
+  static targets = ["display", "form", "input"]
+
+  edit(event) {
+    event.preventDefault()
+    this.displayTarget.classList.add("hidden")
+    this.formTarget.classList.remove("hidden")
+    if (this.hasInputTarget) {
+      this.inputTarget.focus()
+      const len = this.inputTarget.value.length
+      this.inputTarget.setSelectionRange?.(len, len)
+    }
+  }
+
+  cancel(event) {
+    event?.preventDefault()
+    this.formTarget.classList.add("hidden")
+    this.displayTarget.classList.remove("hidden")
+  }
+}</code></pre>
+</figure>
+
+<figure class="code">
+<figcaption>app/views/issues/fields/_title.html.erb (excerpt)</figcaption>
+<pre><code>&lt;%= turbo_frame_tag dom_id(issue, :title) do %&gt;
+  &lt;div data-controller="inline-edit"&gt;
+    <span class="cmt">&lt;%# Display — click toggles the form instantly (JS); GETs it without JS. %&gt;</span>
+    &lt;%= link_to issue_field_path(issue, :title),
+          data: { inline_edit_target: "display", action: "inline-edit#edit" }, ... do %&gt;
+      &lt;h2 ...&gt;&lt;%= issue.title %&gt;&lt;/h2&gt;
+    &lt;% end %&gt;
+
+    <span class="cmt">&lt;%# Edit form — present up front, hidden until toggled. %&gt;</span>
+    &lt;%= form_with model: issue, url: issue_field_path(issue, :title), method: :patch,
+          data: { inline_edit_target: "form" }, class: "hidden" do |f| %&gt;
+      ...
+    &lt;% end %&gt;
+  &lt;/div&gt;
+&lt;% end %&gt;</code></pre>
+</figure>
+
+<p>The clever part is that this is <strong>pure progressive enhancement</strong>. The display is a real <code>link_to</code> pointing at <code>issue_field_path(issue, :title)</code> — the same GET endpoint <code>edit_field</code> serves. With JavaScript disabled, clicking it navigates the frame to a server-rendered edit form; with JS, <code>event.preventDefault()</code> intercepts the click and reveals the already-present form instead. Either way, submission goes through the same <code>PATCH</code> to <code>update_field</code>, and the server returns the canonical display partial. The optimisation removes the perceived latency of <em>entering</em> edit mode while keeping the server as the single source of truth for the saved value.</p>
+
+<h2><span class="num">05 / SUPPORTING PATTERNS</span>Search, palette, feed, validation</h2>
+
+<h3>Debounced live search — with a shareable URL</h3>
+
+<p>The search page auto-submits a real GET form into a results frame as you type, advancing the URL so results are bookmarkable and survive the back button:</p>
+
+<figure class="code">
+<figcaption>app/views/search/show.html.erb (excerpt)</figcaption>
+<pre><code>&lt;%= form_with url: search_path, method: :get,
+      data: { controller: "debounce", turbo_frame: "search_results",
+              turbo_action: "advance" } do |f| %&gt;
+  &lt;%= f.search_field :q, value: @query,
+        data: { action: "input-&gt;debounce#submit" } %&gt;
+&lt;% end %&gt;</code></pre>
+</figure>
+
+<p>The <code>debounce</code> controller is nine lines — <code>clearTimeout</code> / <code>setTimeout(() =&gt; this.element.requestSubmit(), delay)</code>. The query itself is a plain <code>LIKE</code> against title and description, capped at 40 rows. The same controller-rendered results partial is reused by an inline topbar combobox (<code>combobox_controller.js</code>) that drops a panel under the input instead of navigating — and that combobox also degrades to a normal full-page search when JS is off, because the wrapper is a genuine <code>&lt;form&gt;</code>.</p>
+
+<h3>⌘K command palette — server-ranked, no client index</h3>
+
+<figure class="code">
+<figcaption>app/controllers/command_controller.rb (excerpt)</figcaption>
+<pre><code><span class="cmt"># Results are rendered server-side into a Turbo Frame. No client search index.</span>
+def index
+  @query = params[:q].to_s.strip
+  @commands = build_commands.select { |c| match?(c, @query) }.first(8)
+  render partial: "command/results", locals: { commands: @commands, query: @query }
+end</code></pre>
+</figure>
+
+<p>The palette opens on <code>⌘K</code>/<code>Ctrl-K</code> (bound declaratively in the markup with <code>keydown.meta+k@window</code>), debounces typing into a fetch, and the Stimulus controller handles arrow-key navigation and Enter-to-visit. Crucially, ranking happens on the server — <code>build_commands</code> assembles navigation targets, every project, every channel, and the 20 most-recently-updated issues, then filters by substring. There is no client-side index to build, stale, or ship. The client only manages selection state over server-rendered <code>&lt;a&gt;</code> elements.</p>
+
+<h3>Infinite scroll — with no scroll listener</h3>
+
+<figure class="code">
+<figcaption>app/views/activities/_page.html.erb (excerpt)</figcaption>
+<pre><code>&lt;% if next_page %&gt;
+  <span class="cmt">&lt;%# Lazy frame: fetches the next page when it scrolls into view. %&gt;</span>
+  &lt;%= turbo_frame_tag "activity_page_#{next_page}",
+        src: activities_path(page: next_page), loading: :lazy do %&gt;
+    &lt;li&gt;Loading more…&lt;/li&gt;
+  &lt;% end %&gt;
+&lt;% end %&gt;</code></pre>
+</figure>
+
+<p>Each rendered page ends in a lazy <code>turbo_frame_tag</code> whose <code>src</code> points at the next page. <code>loading: :lazy</code> means Turbo fetches it only when the frame scrolls into the viewport — and that next page renders <em>its own</em> trailing lazy frame, chaining indefinitely. The result is infinite scroll with no <code>IntersectionObserver</code> and no scroll handler in sight. The feed itself is a nice touch: <code>Activity</code> is a tableless Ruby object that assembles real records (issues, comments, messages) into a sortable stream, so the pagination demo runs over genuine data rather than fixtures.</p>
+
+<h3>Live form validation — one source of truth</h3>
+
+<figure class="code">
+<figcaption>app/controllers/signups_controller.rb (excerpt)</figcaption>
+<pre><code>def validate
+  @signup = Signup.new(signup_params)
+  @signup.valid? <span class="cmt"># populate errors</span>
+  field = params[:field]
+  render turbo_stream: turbo_stream.replace(
+    "signup_field_#{field}", partial: "signups/field",
+    locals: { signup: @signup, field: field }
+  )
+end</code></pre>
+</figure>
+
+<p><code>Signup</code> is an <code>ActiveModel</code> form object (not a table) carrying the real validations: subdomain format, reserved-word check, email regexp, seat bounds. On blur, the <code>validate</code> Stimulus controller posts the whole form plus the focused field name; the server runs the model's own validations and stream-replaces just that field's frame with the rendered errors. The headline benefit is written into the model's comment: <em>"the validations here are the single source of truth — the client renders the very same model errors."</em> No validation rule is duplicated in JavaScript, so the inline feedback and the final submit can never disagree.</p>
+
+<h2><span class="num">06 / ARCHITECTURE</span>Why these choices are good engineering</h2>
+
+<ul>
+  <li><strong>Thin endpoints, fat HTML.</strong> The drag endpoint returns <code>204</code>; comment creation returns only a reset composer; field edits return a single partial. The controllers don't assemble JSON payloads or worry about what's on screen elsewhere — that's the broadcast's job.</li>
+  <li><strong>The model is the broadcast source of truth.</strong> <code>broadcasts_refreshes</code> on the project and <code>after_create_commit</code> on the comment mean real-time behaviour is a property of the data, not scattered through controllers. A new code path that touches an issue is automatically multiplayer.</li>
+  <li><strong>Two realtime strategies, used deliberately.</strong> Wholesale board changes use morphing refresh; a single new comment uses surgical append. The app demonstrates that the choice is intentional, not dogmatic.</li>
+  <li><strong>Concurrency handled where it matters.</strong> <code>next_issue_number</code> uses <code>with_lock</code>; reorders run in a transaction. The hot paths that two users can hit at once are the ones that take care.</li>
+  <li><strong>A themeable shell from one CSS variable.</strong> The layout sets <code>--color-accent</code> per app and the chrome re-skins itself — six products share one shell, and adding an app is "one row in <code>showcase.rb</code> plus its controllers/views."</li>
+  <li><strong>Minimal JavaScript, all of it small.</strong> Nine Stimulus controllers, none over ~80 lines, each doing exactly one job. There is no client router, no store, no build step for app code (importmap).</li>
+</ul>
+
+<h2><span class="num">07 / FOR CLIENTS</span>Why this maps to real products</h2>
+
+<p>Strip away the demo framing and Workspace <em>is</em> the shape of a large class of real software: project trackers, CRMs, support inboxes, admin dashboards, internal ops tools. They all want the same things — drag-to-reorder, real-time collaboration, detail panes, inline editing, fast search, a command palette. The conventional answer is a React/Vue SPA with a separate JSON API, a client cache, optimistic-update plumbing, and a build pipeline to maintain.</p>
+
+<p>This codebase delivers that UX with server-rendered HTML and a handful of tiny Stimulus controllers. The hiring and maintenance argument writes itself: a Rails engineer can read this entire app end to end in an afternoon, the validation rules live in exactly one place, and the real-time wiring is a property of the models rather than a distributed system you have to reason about. Fewer moving parts means fewer ways to break and a smaller surface to onboard the next developer onto.</p>
+
+<h2><span class="num">08 / TRADE-OFFS</span>What you'd add for production scale</h2>
+
+<p>An honest portfolio piece names its gaps. This is a public demo, and the code reflects that:</p>
+
+<ul>
+  <li><strong>No authentication or authorization.</strong> Identity is a "pick a stable member from an encrypted cookie" convenience (<code>ApplicationController#current_member</code>); every visitor shares the seeded boards, with a "Reset board" button as the safety valve. A real deployment needs accounts, per-tenant scoping, and policy checks on the field-edit and position endpoints.</li>
+  <li><strong>Boards render in full.</strong> <code>projects#show</code> loads every column and issue, and a morphing refresh re-renders the whole board. That's ideal for demo-sized boards; at thousands of cards you'd paginate or virtualize columns and likely switch the busy paths to targeted stream updates.</li>
+  <li><strong>No write-conflict handling.</strong> Concurrent drags are serialized by the per-request transaction and reconciled by the next morph, but there's no optimistic-locking or last-writer-wins policy surfaced to users. A production tracker would want explicit conflict semantics.</li>
+  <li><strong>Search is <code>LIKE</code>.</strong> Fine for the seeded dataset; a real corpus wants a proper index (Postgres full-text or an external engine) and relevance ranking.</li>
+  <li><strong>Activity feed is recomputed.</strong> The tableless <code>Activity</code> assembles its stream on each request — perfect for a demo over real records, but a high-traffic feed would be materialized.</li>
+</ul>
+
+<p>None of these are Hotwire limitations — they're the normal distance between a sharp demo and a multi-tenant product, and each has a well-trodden Rails answer. The point of the demo is that the <em>interaction layer</em> — the part teams usually reach for a SPA framework to build — is already here, server-rendered, and small.</p>
+
+<hr>
+
+<p>The throughline: by keeping interaction state in the DOM and treating the model as the source of broadcast truth, Workspace gets multiplayer drag-and-drop, lazy drawers, instant inline editing, and live validation without a client-side state-management layer. That's the Hotwire thesis, and this app is the proof.</p>
+
+</div>
+</main>
+
+<footer>
+  <div class="wrap">
+    <p style="font-family:'Bricolage Grotesque',sans-serif;font-weight:700;font-size:18px;margin:0 0 4px;">The stack</p>
+    <div class="stack-grid">
+      <div><span class="lbl">Framework</span></div><div><span class="val">Rails 8.1</span></div>
+      <div><span class="lbl">Front-end</span></div><div><span class="val">Hotwire — Turbo 8 (morphing) + Stimulus</span></div>
+      <div><span class="lbl">JS delivery</span></div><div><span class="val">importmap (no Node, no bundler)</span></div>
+      <div><span class="lbl">Drag</span></div><div><span class="val">SortableJS + @rails/request.js</span></div>
+      <div><span class="lbl">Styles</span></div><div><span class="val">Tailwind v4 (tailwindcss-rails)</span></div>
+      <div><span class="lbl">Background / realtime</span></div><div><span class="val">Solid Queue · Solid Cable · Solid Cache</span></div>
+      <div><span class="lbl">Database</span></div><div><span class="val">SQLite</span></div>
+    </div>
+    <p class="foot-brand"><strong>Levelbrook Consulting</strong> — senior Ruby on Rails &amp; Hotwire engineering. <a href="mailto:levelbrookteam@gmail.com">levelbrookteam@gmail.com</a></p>
+  </div>
+</footer>
+
+</body>
+</html>

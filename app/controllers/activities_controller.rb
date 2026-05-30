@@ -6,8 +6,12 @@ class ActivitiesController < ApplicationController
 
   def index
     @page = [ params[:page].to_i, 1 ].max
-    @activities = Activity.page(@page, PER_PAGE)
-    @next_page = @page + 1 if Activity.total > @page * PER_PAGE
+
+    # Build the feed once per request and slice locally, rather than calling
+    # Activity.page/total separately (each of which would rebuild the feed).
+    feed = Activity.all
+    @activities = feed[(@page - 1) * PER_PAGE, PER_PAGE] || []
+    @next_page = @page + 1 if feed.size > @page * PER_PAGE
 
     # Page 1 is the full view; subsequent pages are the lazy-frame body that
     # Turbo splices in when the frame scrolls into view.

@@ -1,7 +1,7 @@
 require "test_helper"
 
-# Activity is a synthetic, memoized feed assembled from real records — so every
-# test resets the class-level cache before and after touching it.
+# Activity is a synthetic feed assembled fresh from real records on every read.
+# (reset! is a retained no-op; the setup/teardown calls are harmless.)
 class ActivityTest < ActiveSupport::TestCase
   setup do
     Activity.reset!
@@ -46,15 +46,17 @@ class ActivityTest < ActiveSupport::TestCase
     assert_equal [], Activity.page(99, 2)
   end
 
-  test "reset! clears the memoized feed" do
+  test "feed reflects new records immediately without a manual reset" do
     @col.issues.create!(title: "one")
-    Activity.reset!
     assert_equal 1, Activity.total
 
+    # Regression: the feed used to be memoized at class level, so a long-running
+    # process served a stale feed (new messages/comments/moves never appeared)
+    # until Activity.reset! was called. It is now rebuilt on every read.
     @col.issues.create!(title: "two")
-    assert_equal 1, Activity.total, "memoized feed is stale until reset"
+    assert_equal 2, Activity.total, "feed must rebuild on read, not serve a stale cache"
 
-    Activity.reset!
-    assert_equal 2, Activity.total
+    @channel.messages.create!(body: "and a chat message")
+    assert_equal 3, Activity.total
   end
 end

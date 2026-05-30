@@ -21,7 +21,7 @@ Rails.application.routes.draw do
     # SortableJS drop -> PUT new column + position. Thin endpoint.
     resource :position, only: [ :update ], controller: "issues/positions"
     # Inline frame-swap edit of a single field.
-    get  "field/:field", to: "issues#edit_field", as: :field
+    get "field/:field", to: "issues#edit_field", as: :field
     patch "field/:field", to: "issues#update_field"
     resources :comments, only: [ :create ]
   end

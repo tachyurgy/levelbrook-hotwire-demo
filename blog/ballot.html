@@ -1,0 +1,539 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Ballot — Optimistic UI meets authoritative morph · Levelbrook Consulting</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,700;12..96,800&family=Inter+Tight:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --accent:#d97706;
+    --accent-soft:#fbebd0;
+    --ink:#1c1917;
+    --ink-soft:#57534e;
+    --ink-faint:#a8a29e;
+    --paper:#fefdfb;
+    --surface:#ffffff;
+    --hairline:#ece8e1;
+    --code-bg:#fbf9f5;
+  }
+  *{box-sizing:border-box}
+  html{-webkit-text-size-adjust:100%}
+  body{
+    margin:0;
+    background:var(--paper);
+    color:var(--ink);
+    font-family:"Inter Tight",system-ui,sans-serif;
+    font-size:18px;
+    line-height:1.66;
+    -webkit-font-smoothing:antialiased;
+  }
+  .wrap{max-width:760px;margin:0 auto;padding:0 24px}
+
+  /* ---- Hero ---- */
+  header.hero{
+    border-bottom:1px solid var(--hairline);
+    background:
+      linear-gradient(180deg,#fffdf9,var(--paper));
+  }
+  .hero-inner{max-width:760px;margin:0 auto;padding:72px 24px 56px}
+  .kicker{
+    font-family:"JetBrains Mono",monospace;
+    font-size:12px;letter-spacing:.14em;text-transform:uppercase;
+    color:var(--accent);font-weight:600;margin:0 0 20px;
+  }
+  h1{
+    font-family:"Bricolage Grotesque",sans-serif;
+    font-weight:800;
+    font-size:clamp(38px,7vw,64px);
+    line-height:1.02;
+    letter-spacing:-.025em;
+    margin:0 0 18px;
+  }
+  .tagline{
+    font-size:21px;color:var(--ink-soft);margin:0 0 28px;max-width:60ch;
+    line-height:1.5;
+  }
+  .badges{display:flex;flex-wrap:wrap;gap:8px;margin-top:4px}
+  .badge{
+    font-family:"JetBrains Mono",monospace;
+    font-size:12px;font-weight:500;
+    padding:5px 11px;border-radius:999px;
+    background:var(--accent-soft);
+    color:#92510a;
+    border:1px solid #f3dbab;
+  }
+  .byline{
+    margin-top:34px;font-family:"JetBrains Mono",monospace;
+    font-size:12.5px;color:var(--ink-faint);
+  }
+  .byline strong{color:var(--ink-soft);font-weight:600}
+
+  /* ---- Body ---- */
+  main{padding:56px 0 32px}
+  h2{
+    font-family:"Bricolage Grotesque",sans-serif;
+    font-weight:700;font-size:30px;letter-spacing:-.02em;
+    line-height:1.12;margin:56px 0 16px;
+  }
+  h3{
+    font-family:"Bricolage Grotesque",sans-serif;
+    font-weight:600;font-size:21px;letter-spacing:-.01em;
+    margin:38px 0 12px;
+  }
+  p{margin:0 0 20px}
+  a{color:var(--accent);text-decoration:none;border-bottom:1px solid #f0cf9c}
+  strong{font-weight:600}
+  ul,ol{margin:0 0 22px;padding-left:22px}
+  li{margin:0 0 9px}
+  .lead{font-size:20px;color:var(--ink-soft)}
+
+  code{
+    font-family:"JetBrains Mono",monospace;
+    font-size:.86em;
+    background:var(--accent-soft);
+    color:#92510a;
+    padding:.12em .4em;border-radius:5px;
+  }
+
+  /* ---- Code blocks ---- */
+  figure.code{margin:26px 0;}
+  figure.code figcaption{
+    font-family:"JetBrains Mono",monospace;
+    font-size:11.5px;color:var(--ink-faint);
+    letter-spacing:.03em;
+    padding:0 0 7px 2px;
+  }
+  pre{
+    margin:0;
+    background:var(--code-bg);
+    border:1px solid var(--hairline);
+    border-left:3px solid var(--accent);
+    border-radius:9px;
+    padding:18px 20px;
+    overflow-x:auto;
+    font-family:"JetBrains Mono",monospace;
+    font-size:13.5px;
+    line-height:1.62;
+    color:#3a3531;
+  }
+  pre code{background:none;color:inherit;padding:0;font-size:inherit}
+
+  .note{
+    margin:30px 0;
+    background:#fffaf2;
+    border:1px solid #f3dbab;
+    border-radius:10px;
+    padding:18px 22px;
+    font-size:16.5px;
+    color:var(--ink-soft);
+  }
+  .note strong{color:var(--ink)}
+
+  /* ---- Bar chart motif ---- */
+  .demo-chart{
+    margin:30px 0;
+    border:1px solid var(--hairline);
+    border-radius:12px;
+    background:var(--surface);
+    padding:22px 22px 18px;
+  }
+  .demo-chart .q{
+    font-family:"Bricolage Grotesque",sans-serif;
+    font-weight:700;font-size:17px;margin:0 0 14px;
+    display:flex;justify-content:space-between;align-items:center;
+  }
+  .demo-chart .q span{
+    font-family:"JetBrains Mono",monospace;font-size:11px;
+    color:var(--ink-faint);font-weight:400;
+  }
+  .opt{
+    position:relative;display:block;width:100%;overflow:hidden;
+    border:1px solid var(--hairline);border-radius:9px;
+    padding:10px 12px;margin-bottom:8px;
+  }
+  .opt .bar{
+    position:absolute;inset:0 auto 0 0;background:var(--accent-soft);
+  }
+  .opt .row{
+    position:relative;display:flex;justify-content:space-between;
+    align-items:center;font-size:14px;font-weight:500;
+  }
+  .opt .row .n{
+    font-family:"JetBrains Mono",monospace;font-size:11px;
+    color:var(--ink-faint);font-weight:400;
+  }
+  .opt.mine{box-shadow:inset 0 0 0 2px var(--accent);border-color:var(--accent)}
+
+  hr{border:none;border-top:1px solid var(--hairline);margin:48px 0}
+
+  /* ---- Stack footer ---- */
+  footer{
+    border-top:1px solid var(--hairline);
+    background:#fffdf9;
+    margin-top:48px;
+  }
+  .foot-inner{max-width:760px;margin:0 auto;padding:46px 24px 64px}
+  .foot-inner h4{
+    font-family:"JetBrains Mono",monospace;
+    font-size:12px;letter-spacing:.12em;text-transform:uppercase;
+    color:var(--accent);margin:0 0 16px;font-weight:600;
+  }
+  .stack{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:28px}
+  .stack span{
+    font-family:"JetBrains Mono",monospace;font-size:12.5px;
+    padding:5px 10px;border:1px solid var(--hairline);border-radius:7px;
+    background:var(--surface);color:var(--ink-soft);
+  }
+  .foot-brand{font-size:15px;color:var(--ink-soft)}
+  .foot-brand strong{color:var(--ink);font-family:"Bricolage Grotesque",sans-serif}
+  .foot-brand a{font-family:"JetBrains Mono",monospace;font-size:13px}
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <div class="hero-inner">
+    <p class="kicker">Hotwire Showcase · Ballot</p>
+    <h1>Optimistic UI, authoritative morph</h1>
+    <p class="tagline">A live-polls and audience-Q&amp;A app where every vote feels instant for the person tapping — yet the numbers everyone sees stay correct, reconciled by the server over a single broadcast. Almost no custom JavaScript.</p>
+    <div class="badges">
+      <span class="badge">optimistic UI</span>
+      <span class="badge">broadcast morph tallies</span>
+      <span class="badge">CSS-bar charts</span>
+      <span class="badge">no charting JS</span>
+    </div>
+    <p class="byline">A build note from <strong>Levelbrook Consulting</strong> — senior Ruby on Rails &amp; Hotwire.</p>
+  </div>
+</header>
+
+<main>
+<div class="wrap">
+
+<p class="lead">Ballot is one of six self-contained Hotwire apps that share a single Rails 8 codebase in our showcase. It does two things you have seen at every conference and all-hands: live polls you vote in and watch tally in real time, and an audience Q&amp;A where people post questions and upvote each other's — the list re-sorting itself as votes land. Both update for every connected browser instantly.</p>
+
+<p>The interesting part is not <em>what</em> it does — it's <em>how little code</em> does it, and the discipline behind that. There is no charting library. There are exactly two small Stimulus controllers. The realtime wiring on the page is one line. And underneath sits a pattern worth naming and stealing: <strong>optimistic UI on the client, authoritative reconciliation by the server, delivered as a morph.</strong> This post walks the whole loop end to end, straight from the code.</p>
+
+<h2>The shape of the thing</h2>
+
+<p>Ballot lives under a Rails namespace. The models are <code>Ballot::Room</code>, <code>Ballot::Poll</code>, <code>Ballot::Option</code>, and <code>Ballot::Question</code>, and they back tables prefixed <code>ballot_</code>. That namespacing is deliberate: the showcase mounts six apps in one Rails app, and prefixing keeps Ballot's tables and classes cleanly partitioned from everyone else's.</p>
+
+<figure class="code">
+  <figcaption>app/models/ballot.rb</figcaption>
+  <pre><code>module Ballot
+  def self.table_name_prefix = "ballot_"
+end</code></pre>
+</figure>
+
+<p>A <strong>room</strong> is the unit of liveness. It <code>has_many</code> polls and questions, and it is the single source of broadcasts:</p>
+
+<figure class="code">
+  <figcaption>app/models/ballot/room.rb</figcaption>
+  <pre><code>class Ballot::Room &lt; ApplicationRecord
+  has_many :polls, -&gt; { order(:position) }, dependent: :destroy
+  has_many :questions,
+    -&gt; { order(upvotes_count: :desc, created_at: :asc) },
+    dependent: :destroy
+
+  validates :name, :slug, presence: true
+
+  broadcasts_refreshes
+
+  def to_param = slug
+end</code></pre>
+</figure>
+
+<p>Two lines carry most of the architecture. The <code>questions</code> association is ordered <code>upvotes_count: :desc</code> — so "the most-upvoted question floats to the top" is a database concern, not a JavaScript one. And <code>broadcasts_refreshes</code> makes the room the broadcast source: any commit that touches it emits a single <code>&lt;turbo-stream action="refresh"&gt;</code>, and every subscribed browser re-fetches the page and <strong>morphs</strong> its DOM to match.</p>
+
+<p>The poll and option models are just as thin. A poll knows its total; an option knows its share of that total.</p>
+
+<figure class="code">
+  <figcaption>app/models/ballot/poll.rb &amp; option.rb</figcaption>
+  <pre><code>class Ballot::Poll &lt; ApplicationRecord
+  belongs_to :room, touch: true
+  has_many :options, -&gt; { order(:position) }, dependent: :destroy
+
+  def total_votes = options.sum(&amp;:votes_count)
+end
+
+class Ballot::Option &lt; ApplicationRecord
+  belongs_to :poll, touch: true
+
+  # Share of the poll's total, for the CSS bar width.
+  def share(total)
+    total.zero? ? 0 : ((votes_count.to_f / total) * 100).round
+  end
+end</code></pre>
+</figure>
+
+<p>Note <code>touch: true</code> on both <code>belongs_to</code> declarations. An option belongs to a poll which belongs to a room. When an option's vote count changes, the touch bubbles up the chain to the room — which is exactly the model that broadcasts. The questions model carries the same <code>belongs_to :room, touch: true</code>. This is the wiring that turns "a counter went up somewhere" into "every screen in the room updates," with no hand-written broadcast code anywhere.</p>
+
+<h2>The signature pattern, traced through one vote</h2>
+
+<p>Here is the loop you should hold in your head. A person taps an option. Three things happen, in this order:</p>
+
+<ol>
+  <li><strong>The browser updates itself immediately</strong> — recomputing every bar in that poll from the new total. This is the optimistic step; it is the reason the tap feels instant.</li>
+  <li><strong>The choice is recorded in <code>localStorage</code></strong>, and a POST goes to the server.</li>
+  <li><strong>The server increments the real counter, touches the room, and replies <code>204 No Content</code></strong> — no body. The room's <code>broadcasts_refreshes</code> then morphs the <em>authoritative</em> tallies onto every open browser, including the one that just voted.</li>
+</ol>
+
+<p>Look at how little the server does. The whole endpoint:</p>
+
+<figure class="code">
+  <figcaption>app/controllers/ballot/votes_controller.rb</figcaption>
+  <pre><code>class Ballot::VotesController &lt; ApplicationController
+  def create
+    room   = Ballot::Room.find_by!(slug: params[:room_slug])
+    option = room.polls.find(params[:poll_id])
+                 .options.find(params[:option_id])
+    option.increment!(:votes_count)
+    room.touch
+    head :no_content
+  end
+end</code></pre>
+</figure>
+
+<p>Three meaningful lines: find the option, <code>increment!</code> the counter, <code>room.touch</code>. The response is <code>head :no_content</code> — a deliberate <code>204</code>. The controller renders <em>no UI at all</em>. Every pixel that changes on every screen arrives through the refresh broadcast. The POST is a write; the broadcast is the read. Keeping those separate is what makes this so clean: there is exactly one code path that produces the on-screen tallies (the page template), and it runs for everyone the same way.</p>
+
+<p>Now the client half. The <code>poll</code> Stimulus controller does the optimistic recompute:</p>
+
+<figure class="code">
+  <figcaption>app/javascript/controllers/poll_controller.js</figcaption>
+  <pre><code>vote(event) {
+  const button = event.currentTarget
+  if (button.disabled) return
+  const optionId = button.dataset.optionId
+
+  // Optimistic: +1 the chosen option, then recompute all shares.
+  const rows = this.optionTargets.map((el) =&gt; ({
+    el,
+    count: parseInt(el.querySelector("[data-count]").textContent, 10) || 0
+  }))
+  const chosen = rows.find((r) =&gt; r.el === button)
+  chosen.count += 1
+  const total = rows.reduce((sum, r) =&gt; sum + r.count, 0)
+  rows.forEach((r) =&gt; {
+    const pct = total ? Math.round((r.count / total) * 100) : 0
+    r.el.querySelector("[data-count]").textContent = r.count
+    r.el.querySelector("[data-pct]").textContent = `${pct}%`
+    r.el.querySelector("[data-bar]").style.width = `${pct}%`
+  })
+  if (this.hasTotalTarget) this.totalTarget.textContent = total
+
+  localStorage.setItem(this.storageKey, optionId)
+  this.applyVoted()
+
+  post(this.voteUrlValue, { body: { option_id: optionId },
+                            responseKind: "turbo-stream" })
+}</code></pre>
+</figure>
+
+<p>Crucially, the optimistic update does not just bump one number — it <strong>recomputes every bar from the new total</strong>, exactly as the server will. Add a vote to one option and the others' percentages all drop slightly; the controller mirrors that so the local picture is internally consistent the instant the tap registers, not just plausibly close. The POST goes out via <code>@rails/request.js</code>, and then the controller is done. It is not waiting on the response to update anything.</p>
+
+<div class="note">
+  <strong>Why this feels instant and stays correct.</strong> The voter sees their tap reflected in a single frame, with zero network latency in the critical path — the optimistic recompute runs synchronously on click. Meanwhile everyone <em>else</em> (and the voter, a beat later) gets the server's authoritative numbers via the morph. If the optimistic guess and the truth ever diverge — two people vote at once, the local count drifts — the morph silently corrects it. Optimism buys perceived speed; the broadcast buys correctness. Neither compromises the other.</div>
+
+<h2>Morph-survival of per-client state</h2>
+
+<p>This is the subtle bit, and the part most teams get wrong when they first reach for <code>broadcasts_refreshes</code>.</p>
+
+<p>The refresh broadcast replaces the DOM. It is the <em>server's</em> rendering of the page — and the server has no idea that <em>this particular browser</em> already voted. The server-rendered option buttons come back enabled, un-highlighted, generic. So how does the "you voted for this one, the buttons are locked" state survive a full server-driven DOM replace?</p>
+
+<p>It survives because Turbo morphs rather than wholesale-replaces, and morphing re-runs Stimulus lifecycle callbacks. When the new markup lands, the <code>poll</code> controller's element is re-connected, and its <code>connect()</code> immediately re-applies this browser's state from <code>localStorage</code>:</p>
+
+<figure class="code">
+  <figcaption>app/javascript/controllers/poll_controller.js</figcaption>
+  <pre><code>connect() {
+  this.applyVoted()
+}
+
+applyVoted() {
+  const choice = localStorage.getItem(this.storageKey)
+  if (!choice) return
+  this.optionTargets.forEach((el) =&gt; {
+    el.disabled = true
+    const mine = el.dataset.optionId === choice
+    el.classList.toggle("ring-2", mine)
+    el.classList.toggle("ring-[var(--color-accent)]", mine)
+    el.classList.toggle("border-[var(--color-accent)]", mine)
+  })
+}</code></pre>
+</figure>
+
+<p>So the division of labor is clean: the <strong>server owns the shared truth</strong> (counts, percentages, ordering), and the <strong>client owns its private state</strong> (which option <em>I</em> picked, whether <em>my</em> buttons are locked). After every morph, the server's truth is painted first, then <code>connect()</code> re-layers this browser's private state on top. <code>localStorage</code> is keyed per poll — <code>ballot-poll-${this.idValue}</code> — so it persists across morphs, across navigations, and across full page reloads. The morph can run a hundred times and your "I voted" highlight comes right back each time.</p>
+
+<p>The upvote controller is the same pattern, smaller:</p>
+
+<figure class="code">
+  <figcaption>app/javascript/controllers/upvote_controller.js</figcaption>
+  <pre><code>connect() {
+  if (localStorage.getItem(this.storageKey)) this.lock()
+}
+
+cast() {
+  if (localStorage.getItem(this.storageKey)) return
+  this.countTarget.textContent =
+    (parseInt(this.countTarget.textContent, 10) || 0) + 1
+  localStorage.setItem(this.storageKey, "1")
+  this.lock()
+  post(this.urlValue, { responseKind: "turbo-stream" })
+}
+
+lock() {
+  this.element.querySelector("button").disabled = true
+}</code></pre>
+</figure>
+
+<p>Bump the count optimistically, lock the button, persist to <code>localStorage</code>, POST. The server's <code>UpvotesController</code> mirrors the votes controller exactly — <code>question.increment!(:upvotes_count)</code>, <code>room.touch</code>, <code>head :no_content</code> — and the morph reconciles. After the morph, <code>connect()</code> re-locks the button so you can't upvote the same question twice in this browser.</p>
+
+<h2>Charts with no charting library</h2>
+
+<p>There is no D3, no Chart.js, no canvas, no SVG-plotting dependency. A bar is a <code>&lt;div&gt;</code> whose width is a percentage. That's the whole chart.</p>
+
+<figure class="code">
+  <figcaption>app/views/ballot/rooms/_poll.html.erb</figcaption>
+  <pre><code>&lt;% pct = option.share(total) %&gt;
+&lt;button type="button" data-poll-target="option"
+        data-option-id="&lt;%= option.id %&gt;" data-action="poll#vote"
+        class="group relative block w-full overflow-hidden ..."&gt;
+  &lt;span data-bar
+        class="absolute inset-y-0 left-0 bg-[var(--color-accent-soft)]
+               transition-[width] duration-500 ease-out"
+        style="width: &lt;%= pct %&gt;%"&gt;&lt;/span&gt;
+  &lt;span class="relative flex items-center justify-between gap-3"&gt;
+    &lt;span class="text-sm font-medium"&gt;&lt;%= option.label %&gt;&lt;/span&gt;
+    &lt;span class="..."&gt;
+      &lt;span data-count&gt;&lt;%= option.votes_count %&gt;&lt;/span&gt; ·
+      &lt;span data-pct&gt;&lt;%= pct %&gt;%&lt;/span&gt;
+    &lt;/span&gt;
+  &lt;/span&gt;
+&lt;/button&gt;</code></pre>
+</figure>
+
+<p>The percentage is computed <em>server-side</em> by <code>Option#share</code>, and rendered straight into <code>style="width: …%"</code> with a CSS <code>transition-[width]</code>. This is what makes the morph so cheap and so smooth: when the authoritative tallies arrive, the only thing that changed in the markup is a number inside <code>style="width:"</code>. Morphing patches that attribute in place, the CSS transition animates the new width, and the bar slides to its new length. No re-instantiation, no chart re-render, no layout thrash. The bar <em>is</em> the data.</p>
+
+<p>Here is the same motif rendered statically, so you can see what the morph is animating between:</p>
+
+<div class="demo-chart">
+  <p class="q">How did this sprint feel? <span>26 votes</span></p>
+  <div class="opt mine"><span class="bar" style="width:46%"></span><span class="row">🙂 Solid <span class="n">12 · 46%</span></span></div>
+  <div class="opt"><span class="bar" style="width:27%"></span><span class="row">🔥 Best one yet <span class="n">7 · 27%</span></span></div>
+  <div class="opt"><span class="bar" style="width:19%"></span><span class="row">😐 Mixed <span class="n">5 · 19%</span></span></div>
+  <div class="opt"><span class="bar" style="width:8%"></span><span class="row">🫠 Rough <span class="n">2 · 8%</span></span></div>
+</div>
+
+<p>The counter columns earn their keep here too. <code>votes_count</code> on options and <code>upvotes_count</code> on questions are plain integer columns, bumped with <code>increment!</code> — a single <code>UPDATE … SET votes_count = votes_count + 1</code>. No <code>COUNT(*)</code> over a votes table on every render, and the Q&amp;A ordering (<code>order(upvotes_count: :desc)</code>) is an indexed column sort. The data model is built for the read pattern.</p>
+
+<h2>Questions: post one, the room re-sorts for everyone</h2>
+
+<p>Asking a question follows the same broadcast-as-truth philosophy, with one twist for the asker's own form. The controller creates the question and responds two ways:</p>
+
+<figure class="code">
+  <figcaption>app/controllers/ballot/questions_controller.rb</figcaption>
+  <pre><code>def create
+  @room = Ballot::Room.find_by!(slug: params[:room_slug])
+  @question = @room.questions.create!(
+    body: params.dig(:question, :body).to_s.strip,
+    author: current_member&amp;.name || "Guest"
+  )
+  respond_to do |format|
+    format.turbo_stream do
+      render turbo_stream: turbo_stream.replace(
+        "new_question",
+        partial: "ballot/rooms/new_question", locals: { room: @room }
+      )
+    end
+    format.html { redirect_to ballot_room_path(@room) }
+  end
+rescue ActiveRecord::RecordInvalid
+  head :unprocessable_entity
+end</code></pre>
+</figure>
+
+<p>The <em>only</em> thing the turbo-stream response does is replace the <code>new_question</code> frame with a fresh, empty form — so the asker's textarea clears and they can immediately ask another. The new question itself is <em>not</em> in that response. It doesn't need to be: <code>create!</code> saved a record that <code>belongs_to :room, touch: true</code>, so the room is touched, <code>broadcasts_refreshes</code> fires, and the morph adds the new question to the list — already inserted in the correct position by upvote order — on <strong>every</strong> screen, the asker's included.</p>
+
+<p>The new-question partial is a Turbo Frame precisely so the controller can target it for replacement:</p>
+
+<figure class="code">
+  <figcaption>app/views/ballot/rooms/_new_question.html.erb</figcaption>
+  <pre><code>&lt;%= turbo_frame_tag "new_question" do %&gt;
+  &lt;%= form_with url: ballot_room_questions_path(room),
+                method: :post, class: "..." do |f| %&gt;
+    &lt;%= f.text_area :body, rows: 2, required: true,
+          placeholder: "Ask the room a question…",
+          class: "field-input resize-none text-sm" %&gt;
+    ...
+  &lt;% end %&gt;
+&lt;% end %&gt;</code></pre>
+</figure>
+
+<p>It's a tidy split of concerns: the frame replace handles the <em>private</em> "clear my form" interaction; the room broadcast handles the <em>shared</em> "a question appeared and the list re-sorted" interaction. Same dual ownership as the votes — server owns the shared list, the targeted stream owns the asker's local form reset.</p>
+
+<p>And the page wiring? One line in the room template subscribes the browser to the room's broadcasts:</p>
+
+<figure class="code">
+  <figcaption>app/views/ballot/rooms/show.html.erb</figcaption>
+  <pre><code>&lt;%= turbo_stream_from @room %&gt;</code></pre>
+</figure>
+
+<p>That's the entire realtime setup. No channel class to write, no subscription bookkeeping, no per-fragment stream targets. The room broadcasts; the page subscribes; morphing does the rest.</p>
+
+<h2>Why these are good architectural choices</h2>
+
+<ul>
+  <li><strong>Model-as-broadcast-source via <code>touch</code>.</strong> Liveness is declared once, on the room, with <code>broadcasts_refreshes</code>. Every write path — votes, upvotes, new questions — reaches it through ordinary <code>belongs_to … touch: true</code> chains. There is no broadcast call scattered across controllers to keep in sync. Add a new kind of activity tomorrow and as long as it touches the room, it's live for free.</li>
+  <li><strong>Counter columns over aggregate queries.</strong> <code>votes_count</code> and <code>upvotes_count</code> make both the write (atomic <code>increment!</code>) and the read (no <code>COUNT</code>, indexed sort) cheap. The percentage math is a tiny pure method, not a query.</li>
+  <li><strong>Thin endpoints with a <code>204</code> contract.</strong> The write controllers do one thing and render nothing. UI is never produced by the request handler, only by the page template — so there's a single rendering path and no risk of the POST response and the broadcast disagreeing.</li>
+  <li><strong>No charting dependency.</strong> The "chart" is a div width and a CSS transition. Nothing to bundle, nothing to keep up to date, nothing that breaks under morph. The visualization rides the exact same morph mechanism as everything else.</li>
+  <li><strong>App-under-namespace structure.</strong> Ballot is fully self-contained — its own controllers, models (<code>ballot_*</code> tables), and views — yet it shares the showcase's themeable shell, which re-skins the chrome by overriding one CSS custom property with the app's amber accent. Six apps, one Rails codebase, no collisions.</li>
+</ul>
+
+<h2>What this unlocks for a product</h2>
+
+<p>Strip away the demo framing and Ballot is a reference implementation for a whole category of features clients ask for: <strong>live audience interaction</strong>. Conference and webinar polling. All-hands Q&amp;A with upvoting. Live reaction tallies and sentiment bars during a stream. Leaderboards that re-rank as scores land. Product-feedback boards where the most-wanted item floats up. In each case the requirement is identical: it has to feel instant for the person acting, and it has to be correct and consistent for the room watching.</p>
+
+<p>The pattern here delivers exactly that, and the maintainability story is the real selling point. The entire feature is two small Stimulus controllers (about 60 and 30 lines), four thin models, four thin controllers, and a handful of ERB partials. There is no client-side state library, no charting dependency, no WebSocket plumbing to hand-maintain, no SPA build pipeline. A Rails engineer can read the whole thing in fifteen minutes and extend it confidently — because the rules are simple: <em>writes touch the room, the room broadcasts, the page morphs, and each browser re-applies its own state on connect.</em> That is a codebase a team can own, not one that owns the team.</p>
+
+<h2>Honest trade-offs and production hardening</h2>
+
+<p>This is a portfolio demo, and we'd be doing you a disservice to pretend the demo's shortcuts are production-ready. They're the right shortcuts <em>for a demo</em>, and here's exactly what you'd change for a real deployment:</p>
+
+<ul>
+  <li><strong>Vote integrity is client-trust only.</strong> "Vote once" is enforced entirely in <code>localStorage</code> in the user's browser. The server happily accepts every POST and increments the counter — there is no server-side dedup. Clearing storage, opening an incognito window, or simply calling the endpoint directly votes again. A real app needs <strong>server-side identity and deduplication</strong>: a per-user (or per-session/per-ballot) vote record with a unique constraint, so the count reflects distinct voters, not distinct clicks.</li>
+  <li><strong>No authentication or authorization.</strong> Anyone who can reach a room can vote and post. Production wants real auth, plus room-level permissions (who can create polls, who can moderate Q&amp;A, whether the room is open).</li>
+  <li><strong>No rate limiting or abuse controls.</strong> The increment endpoints are wide open. A real deployment needs rate limiting, and Q&amp;A needs moderation — length limits beyond <code>required</code>, profanity/spam handling, and the ability to hide or remove a question.</li>
+  <li><strong>Optimistic divergence is masked, not resolved.</strong> The morph papers over optimistic drift by always reasserting the server's numbers — which is the right behavior — but there's no explicit handling of a <em>failed</em> POST. If the network request errors, the optimistic bump stays on screen until the next broadcast happens to correct it. Production would surface and roll back failures deliberately.</li>
+</ul>
+
+<p>None of these undercut the pattern — they're orthogonal to it. The optimistic-UI-plus-authoritative-morph loop is exactly how you'd build the production feature too; you'd just bolt real identity, auth, and rate limiting onto the same skeleton. The demo isolates the interaction model so you can see it clearly, then tells you honestly where the guardrails go.</p>
+
+<hr>
+
+<p>That's Ballot. A live, multiplayer, animated polling and Q&amp;A surface — instant for the actor, correct for the crowd — built on Rails' own broadcast machinery and roughly ninety lines of Stimulus. The hard part of realtime UI was never the WebSocket; it was keeping perceived speed and shared correctness from fighting each other. Optimism plus morph is how you get both.</p>
+
+</div>
+</main>
+
+<footer>
+  <div class="foot-inner">
+    <h4>The stack</h4>
+    <div class="stack">
+      <span>Rails 8.1</span>
+      <span>Turbo 8 morphing</span>
+      <span>Stimulus</span>
+      <span>Action Cable</span>
+      <span>Solid Cable</span>
+      <span>importmap</span>
+      <span>Tailwind v4</span>
+      <span>SQLite</span>
+    </div>
+    <p class="foot-brand"><strong>Levelbrook Consulting</strong> — a Ruby on Rails &amp; Hotwire staff-augmentation practice. We build instant-feeling, server-authoritative interfaces like this one, and we'd be glad to do it on your team.<br><br>
+    <a href="mailto:levelbrookteam@gmail.com">levelbrookteam@gmail.com</a></p>
+  </div>
+</footer>
+
+</body>
+</html>

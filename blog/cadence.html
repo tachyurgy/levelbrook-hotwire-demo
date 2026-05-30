@@ -1,0 +1,572 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Cadence — Realtime team chat on a Rails monolith · Levelbrook Consulting</title>
+<meta name="author" content="Levelbrook Consulting">
+<meta name="description" content="A deep technical write-up of Cadence, a realtime team-chat app built with Rails 8, Turbo, and Action Cable — and the deliberate split between DOM-over-the-wire and raw cable JSON.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,700;12..96,800&family=Inter+Tight:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --accent: #0d9488;
+    --accent-soft: #d3efeb;
+    --ink: #16201e;
+    --ink-soft: #4a5653;
+    --ink-faint: #8b9591;
+    --paper: #fbfcfc;
+    --rule: #e4e9e7;
+    --code-bg: #f4f8f7;
+  }
+  * { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; }
+  body {
+    margin: 0;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: "Inter Tight", system-ui, sans-serif;
+    font-size: 18px;
+    line-height: 1.68;
+    font-weight: 400;
+  }
+  .wrap { max-width: 720px; margin: 0 auto; padding: 0 24px; }
+
+  /* Hero */
+  header.hero {
+    border-bottom: 1px solid var(--rule);
+    padding: 72px 0 44px;
+  }
+  .brand {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 12px;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--accent);
+    font-weight: 600;
+  }
+  .domain {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 12px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    margin-left: 12px;
+  }
+  h1.title {
+    font-family: "Bricolage Grotesque", sans-serif;
+    font-weight: 800;
+    font-size: 58px;
+    line-height: 1.02;
+    letter-spacing: -0.02em;
+    margin: 22px 0 0;
+  }
+  .tagline {
+    font-size: 22px;
+    color: var(--ink-soft);
+    margin: 16px 0 0;
+    font-weight: 500;
+  }
+  .badges { margin-top: 28px; display: flex; flex-wrap: wrap; gap: 8px; }
+  .badge {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--accent);
+    background: var(--accent-soft);
+    border-radius: 999px;
+    padding: 6px 13px;
+  }
+
+  /* Body */
+  main { padding: 8px 0 80px; }
+  h2 {
+    font-family: "Bricolage Grotesque", sans-serif;
+    font-weight: 700;
+    font-size: 30px;
+    letter-spacing: -0.015em;
+    line-height: 1.12;
+    margin: 56px 0 6px;
+  }
+  h2 .num {
+    color: var(--accent);
+    font-size: 18px;
+    vertical-align: super;
+    margin-right: 8px;
+    font-weight: 600;
+  }
+  h3 {
+    font-family: "Bricolage Grotesque", sans-serif;
+    font-weight: 600;
+    font-size: 21px;
+    letter-spacing: -0.01em;
+    margin: 36px 0 4px;
+  }
+  p { margin: 16px 0; }
+  a { color: var(--accent); text-decoration: none; border-bottom: 1px solid var(--accent-soft); }
+  strong { font-weight: 600; }
+  code {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 0.86em;
+    background: var(--code-bg);
+    padding: 1px 5px;
+    border-radius: 4px;
+    color: #0b6e66;
+  }
+  .lead {
+    font-size: 21px;
+    line-height: 1.55;
+    color: var(--ink-soft);
+    margin: 32px 0;
+  }
+
+  /* Code blocks */
+  figure.code {
+    margin: 24px 0;
+    border-left: 3px solid var(--accent);
+    background: var(--code-bg);
+    border-radius: 0 8px 8px 0;
+    overflow: hidden;
+  }
+  figure.code figcaption {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    padding: 10px 18px 0;
+  }
+  figure.code pre {
+    margin: 0;
+    padding: 12px 18px 18px;
+    overflow-x: auto;
+  }
+  figure.code code {
+    background: none;
+    padding: 0;
+    color: var(--ink);
+    font-size: 13.5px;
+    line-height: 1.62;
+  }
+  .tok-c { color: #7c8a86; font-style: italic; }   /* comment */
+  .tok-k { color: #0d9488; font-weight: 600; }      /* keyword/accent */
+  .tok-s { color: #9a5b1e; }                         /* string */
+
+  /* Pull / callout */
+  blockquote {
+    margin: 28px 0;
+    padding: 4px 0 4px 22px;
+    border-left: 3px solid var(--accent-soft);
+    color: var(--ink-soft);
+    font-size: 19px;
+    font-style: italic;
+  }
+  .twocol { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; margin: 24px 0; }
+  .card {
+    border: 1px solid var(--rule);
+    border-radius: 10px;
+    padding: 18px 20px;
+  }
+  .card h4 {
+    font-family: "Bricolage Grotesque", sans-serif;
+    font-weight: 700;
+    font-size: 16px;
+    margin: 0 0 6px;
+  }
+  .card p { font-size: 15px; margin: 0; color: var(--ink-soft); line-height: 1.5; }
+  .card .kicker {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 10.5px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--accent);
+    display: block;
+    margin-bottom: 8px;
+  }
+  ul { padding-left: 22px; }
+  li { margin: 8px 0; }
+
+  /* Footer / stack */
+  footer {
+    border-top: 1px solid var(--rule);
+    padding: 40px 0 64px;
+  }
+  .stack-title {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 11px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    margin-bottom: 14px;
+  }
+  .stack { display: flex; flex-wrap: wrap; gap: 8px; }
+  .chip {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 12px;
+    color: var(--ink-soft);
+    border: 1px solid var(--rule);
+    border-radius: 6px;
+    padding: 5px 11px;
+  }
+  .sig { margin-top: 32px; font-size: 15px; color: var(--ink-soft); }
+  .sig strong { color: var(--ink); }
+
+  @media (max-width: 640px) {
+    h1.title { font-size: 42px; }
+    .twocol { grid-template-columns: 1fr; }
+    body { font-size: 17px; }
+  }
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <div class="wrap">
+    <span class="brand">Levelbrook Consulting</span><span class="domain">Team comms</span>
+    <h1 class="title">Cadence</h1>
+    <p class="tagline">Realtime team chat with presence — built on the Rails monolith, no separate websocket service.</p>
+    <div class="badges">
+      <span class="badge">broadcast_append_to</span>
+      <span class="badge">Action Cable presence</span>
+      <span class="badge">typing indicator</span>
+      <span class="badge">optimistic reactions</span>
+    </div>
+  </div>
+</header>
+
+<main>
+<div class="wrap">
+
+<p class="lead">Cadence is one app inside a six-app Hotwire showcase. It is a realtime team chat: channels with a live message feed, a presence roster that fills in as people arrive, "X is typing…" indicators, and optimistic emoji reactions. What makes it worth a write-up is not the feature list — it is that the same screen runs <em>two different realtime transports at once</em>, and the choice of which to use where is the whole lesson.</p>
+
+<p>Persistent content — the messages themselves — travels as <strong>HTML over the wire</strong> via Turbo Streams. Ephemeral signals — who is online, who is typing — travel as <strong>raw Action Cable JSON</strong>, because there is nothing to persist and nothing to render server-side. Both ride the same Action Cable connection, backed by Solid Cable on SQLite. No Redis, no Node websocket tier, no client framework. This post walks the code that makes that work.</p>
+
+<h2><span class="num">01</span>The shape of a channel</h2>
+
+<p>A request to <code>/channels/:slug</code> resolves a <code>Channel</code>, loads the last fifty messages with their authors, and the full member list. The controller is deliberately small — all the realtime behavior lives in the model and the view, not here.</p>
+
+<figure class="code">
+<figcaption>app/controllers/channels_controller.rb</figcaption>
+<pre><code><span class="tok-k">def</span> show
+  @channel  = Channel.find_by!(slug: params[:slug])
+  @channels = Channel.all
+  @messages = @channel.messages.includes(:member).last(<span class="tok-k">50</span>)
+  @members  = Member.order(:id)
+<span class="tok-k">end</span></code></pre>
+</figure>
+
+<p>The view opens a single Action Cable stream for the channel and renders the seeded messages into a list. One line — <code>turbo_stream_from @channel</code> — is the entire client-side subscription for new messages; turbo-rails handles the websocket plumbing.</p>
+
+<figure class="code">
+<figcaption>app/views/channels/show.html.erb</figcaption>
+<pre><code>&lt;section class=<span class="tok-s">"…"</span>
+         data-controller=<span class="tok-s">"chat presence typing"</span>
+         data-presence-slug-value=<span class="tok-s">"&lt;%= @channel.slug %&gt;"</span>
+         data-typing-slug-value=<span class="tok-s">"&lt;%= @channel.slug %&gt;"</span>
+         data-typing-name-value=<span class="tok-s">"&lt;%= current_member&amp;.name %&gt;"</span>&gt;
+  …
+  <span class="tok-c">&lt;%# Live message feed. New messages stream-append here. %&gt;</span>
+  &lt;%= turbo_stream_from @channel %&gt;
+  &lt;div data-chat-target=<span class="tok-s">"scroll"</span> class=<span class="tok-s">"flex-1 overflow-y-auto py-3"</span>&gt;
+    &lt;div id=<span class="tok-s">"messages"</span>&gt;
+      &lt;% @messages.each <span class="tok-k">do</span> |message| %&gt;
+        &lt;%= render <span class="tok-s">"messages/message"</span>, message: message %&gt;
+      &lt;% <span class="tok-k">end</span> %&gt;
+    &lt;/div&gt;
+  &lt;/div&gt;</code></pre>
+</figure>
+
+<p>That one <code>&lt;section&gt;</code> hosts three Stimulus controllers — <code>chat</code>, <code>presence</code>, <code>typing</code> — and threads the channel slug and the current member's name down to them as values. Three controllers, three concerns, no coupling between them.</p>
+
+<h2><span class="num">02</span>Two realtime patterns, chosen on purpose</h2>
+
+<p>The view's own caption states the thesis plainly: <em>"Messages append via <code>broadcast_append_to</code>; reactions <code>broadcast_replace</code> just one message; presence + typing ride raw Action Cable channels — not DOM over the wire."</em> Here is why each branch is what it is.</p>
+
+<h3>(a) DOM over the wire — the message feed</h3>
+
+<p>A <code>Message</code> is its own broadcaster. When one is created and the transaction commits, the model appends its rendered partial to the <code>messages</code> list for every subscriber. When one is updated — which only happens on a reaction — it replaces just that message, surgically, targeting its <code>dom_id</code>.</p>
+
+<figure class="code">
+<figcaption>app/models/message.rb</figcaption>
+<pre><code><span class="tok-c"># Append-feed pattern (not refresh): each new message streams onto</span>
+<span class="tok-c"># the end of the channel's message list for every subscribed client.</span>
+<span class="tok-k">after_create_commit do</span>
+  broadcast_append_to channel, target: <span class="tok-s">"messages"</span>, partial: <span class="tok-s">"messages/message"</span>
+<span class="tok-k">end</span>
+
+<span class="tok-c"># A reaction is a surgical update, not an append — replace just</span>
+<span class="tok-c"># this message for everyone subscribed to the channel.</span>
+<span class="tok-k">after_update_commit do</span>
+  broadcast_replace_to channel, target: ActionView::RecordIdentifier.dom_id(<span class="tok-k">self</span>),
+    partial: <span class="tok-s">"messages/message"</span>
+<span class="tok-k">end</span></code></pre>
+</figure>
+
+<p>This is the crux of the "HTML over the wire" idea. The server renders the same partial it would render on a full page load, wraps it in a <code>&lt;turbo-stream&gt;</code> element, and ships it down the channel. The browser does no templating — Turbo finds the target element by ID and either <code>append</code>s or <code>replace</code>s. The append and the replace differ only in <em>targeting</em>: a new message goes onto the end of the list (<code>target: "messages"</code>), while a reaction surgically swaps the one element that changed (<code>target: dom_id(self)</code>). A full-feed refresh would be wasteful for a one-emoji change, and re-appending would duplicate the message. Targeting the <code>dom_id</code> is what keeps it surgical.</p>
+
+<p>Because the model does the broadcasting, the controllers stay almost empty. <code>MessagesController#create</code> saves the message — the <code>after_create_commit</code> hook fans it out to everyone — and the controller's only job is to reset the composer for the sender who submitted it.</p>
+
+<figure class="code">
+<figcaption>app/controllers/messages_controller.rb</figcaption>
+<pre><code><span class="tok-k">if</span> @message.save
+  <span class="tok-c"># Model append-broadcasts to every subscriber. Reset the composer locally.</span>
+  respond_to <span class="tok-k">do</span> |format|
+    format.turbo_stream { render turbo_stream: turbo_stream.replace(
+      <span class="tok-s">"new_message"</span>, partial: <span class="tok-s">"messages/form"</span>, locals: { channel: @channel }
+    ) }
+    format.html { redirect_to channel_path(@channel) }
+  <span class="tok-k">end</span>
+<span class="tok-k">end</span></code></pre>
+</figure>
+
+<p>Note the division of labor: the broadcast handles every <em>other</em> browser, and the direct turbo-stream response handles only the sender's composer. The sender sees their message arrive through the same broadcast everyone else does — there is no special-cased local echo to keep in sync.</p>
+
+<h3>(b) Raw cable JSON — presence and typing</h3>
+
+<p>Presence and typing never persist anything and never need server-rendered HTML. Pushing a roster or a typing flag as a Turbo Stream would mean rendering a partial for a value that lives for seconds. So these two ride <em>raw</em> Action Cable channels that broadcast plain JSON, and the client decides what to do with it.</p>
+
+<figure class="code">
+<figcaption>app/channels/typing_channel.rb</figcaption>
+<pre><code><span class="tok-c"># Relays ephemeral "X is typing…" events between clients in a channel.</span>
+<span class="tok-c"># Nothing is persisted; this is raw cable JSON, not DOM-over-the-wire.</span>
+<span class="tok-k">class</span> TypingChannel &lt; ApplicationCable::Channel
+  <span class="tok-k">def</span> start(_data = {}) = relay(<span class="tok-s">"start"</span>)
+  <span class="tok-k">def</span> stop(_data = {})  = relay(<span class="tok-s">"stop"</span>)
+
+  <span class="tok-k">private</span>
+
+  <span class="tok-k">def</span> stream_name = <span class="tok-s">"typing:#{@slug}"</span>
+
+  <span class="tok-k">def</span> relay(action)
+    ActionCable.server.broadcast(stream_name, { action: action, name: connection.member_name })
+  <span class="tok-k">end</span>
+<span class="tok-k">end</span></code></pre>
+</figure>
+
+<blockquote>The rule that falls out of this: persistent content → HTML streams you can morph and re-render; transient signals → raw cable JSON the client renders ephemerally. Same connection, same Solid Cable backend — two transports chosen by the nature of the data.</blockquote>
+
+<h2><span class="num">03</span>Presence: a cache-backed roster with heartbeats</h2>
+
+<p>Presence is "who is in this room right now." Cadence holds it in <code>Rails.cache</code> as a hash of <code>name =&gt; last-seen-epoch</code>, keyed per channel. There is no presence table — it is ephemeral by design, with a five-minute cache expiry and a two-minute liveness cutoff.</p>
+
+<figure class="code">
+<figcaption>app/channels/presence_channel.rb</figcaption>
+<pre><code><span class="tok-k">def</span> subscribed
+  @slug = params[:slug]
+  <span class="tok-k">return</span> reject <span class="tok-k">if</span> @slug.blank?
+  stream_from stream_name
+  mark_present
+  broadcast_roster
+<span class="tok-k">end</span>
+
+<span class="tok-k">def</span> mark_present
+  roster = current_roster
+  roster[member_name] = Time.current.to_i
+  Rails.cache.write(cache_key, prune(roster), expires_in: <span class="tok-k">5</span>.minutes)
+<span class="tok-k">end</span>
+
+<span class="tok-k">def</span> prune(roster)
+  cutoff = <span class="tok-k">2</span>.minutes.ago.to_i
+  roster.select { |_name, seen| seen &gt;= cutoff }
+<span class="tok-k">end</span>
+
+<span class="tok-k">def</span> broadcast_roster
+  names = prune(current_roster).keys.sort
+  ActionCable.server.broadcast(stream_name, { names: names })
+<span class="tok-k">end</span></code></pre>
+</figure>
+
+<p>Every write prunes anyone whose last heartbeat is older than two minutes, so a roster naturally sheds stale entries even if an <code>unsubscribed</code> callback never fires — the common failure mode when a laptop lid closes or a tab is killed without a clean disconnect. The subscribe/unsubscribe lifecycle handles the happy path: arriving marks you present and broadcasts; leaving marks you absent and broadcasts again.</p>
+
+<p>The client keeps itself alive with a heartbeat. The Stimulus controller subscribes on <code>connect</code>, performs <code>present</code> every thirty seconds, and — importantly — fires an extra heartbeat whenever the tab becomes visible again, so coming back from a background tab re-asserts your presence immediately rather than waiting out the next interval.</p>
+
+<figure class="code">
+<figcaption>app/javascript/controllers/presence_controller.js</figcaption>
+<pre><code>async connect() {
+  this.channel = await cable.subscribeTo(
+    { channel: <span class="tok-s">"PresenceChannel"</span>, slug: this.slugValue },
+    { received: this.received.bind(this) }
+  )
+  this.heartbeat = setInterval(() =&gt; this.channel?.perform(<span class="tok-s">"present"</span>), <span class="tok-k">30000</span>)
+  document.addEventListener(<span class="tok-s">"visibilitychange"</span>, this.onVisibility)
+}
+
+disconnect() {
+  clearInterval(this.heartbeat)
+  document.removeEventListener(<span class="tok-s">"visibilitychange"</span>, this.onVisibility)
+  this.channel?.unsubscribe()
+}</code></pre>
+</figure>
+
+<p>The <code>disconnect()</code> half matters as much as <code>connect()</code>: it clears the interval, drops the visibility listener, and unsubscribes the channel. Leaking a subscription or an interval across Turbo navigations is the classic Hotwire bug, and the symmetry here is what prevents it. When a roster arrives, the controller renders avatar initials straight from the JSON names — no server round-trip, because the data is trivially renderable on the client.</p>
+
+<h2><span class="num">04</span>Typing: throttled, self-silencing, self-expiring</h2>
+
+<p>The typing indicator is a study in restraint — three separate guards keep it from being annoying or chatty. First, <strong>start events are throttled</strong>: the controller sends exactly one <code>start</code> per typing burst and resets a 3-second timer on every keystroke, so the network sees one event, not one per character. Second, it <strong>auto-stops after a pause</strong> — when the timer elapses, or when the input goes empty, it sends <code>stop</code>.</p>
+
+<figure class="code">
+<figcaption>app/javascript/controllers/typing_controller.js</figcaption>
+<pre><code>changed() {
+  <span class="tok-k">if</span> (this.inputTarget.value.trim() === <span class="tok-s">""</span>) { this.#send(<span class="tok-s">"stop"</span>); <span class="tok-k">return</span> }
+  <span class="tok-k">if</span> (!this.sentStart) {
+    this.channel?.perform(<span class="tok-s">"start"</span>)
+    this.sentStart = <span class="tok-k">true</span>
+  }
+  clearTimeout(this.stopTimer)
+  this.stopTimer = setTimeout(() =&gt; this.#send(<span class="tok-s">"stop"</span>), <span class="tok-k">3000</span>)
+}
+
+received({ action, name }) {
+  <span class="tok-k">if</span> (name === this.nameValue) <span class="tok-k">return</span>   <span class="tok-c">// never echo your own typing</span>
+  <span class="tok-k">if</span> (action === <span class="tok-s">"start"</span>) this.typers.set(name, Date.now())
+  <span class="tok-k">else</span> this.typers.delete(name)
+  this.#render()
+}</code></pre>
+</figure>
+
+<p>Third — and this is the robustness move — there is a <strong>client-side purge</strong>. A 1-second interval sweeps the local <code>typers</code> map and drops anyone whose last <code>start</code> is more than five seconds old. So even if a <code>stop</code> event is dropped or a sender vanishes mid-keystroke, the indicator self-heals instead of hanging forever on "Jordan is typing…". And the very first line of <code>received()</code> drops any event bearing your own name, so you never see yourself typing — the indicator only ever reports <em>other</em> people.</p>
+
+<h2><span class="num">05</span>Optimistic reactions, reconciled by broadcast</h2>
+
+<p>Reactions are where the two halves meet. The interaction is optimistic: clicking an emoji bumps the visible count <em>immediately</em>, with no wait for the server, then fires the request in the background.</p>
+
+<figure class="code">
+<figcaption>app/javascript/controllers/emoji_react_controller.js</figcaption>
+<pre><code>react(event) {
+  <span class="tok-k">const</span> button  = event.currentTarget
+  <span class="tok-k">const</span> countEl = button.querySelector(<span class="tok-s">"[data-count]"</span>)
+  countEl.textContent = (parseInt(countEl.textContent, <span class="tok-k">10</span>) || <span class="tok-k">0</span>) + <span class="tok-k">1</span>
+  button.classList.add(<span class="tok-s">"border-[var(--color-accent)]"</span>)
+  post(this.urlValue, { body: { emoji: button.dataset.emoji }, responseKind: <span class="tok-s">"turbo-stream"</span> })
+}</code></pre>
+</figure>
+
+<p>The server's job is to make that optimistic bump <em>true</em> for everyone. The reactions endpoint is a thin 204 — it persists the reaction and returns no body, because the actual UI update arrives over the broadcast channel, not in the HTTP response.</p>
+
+<figure class="code">
+<figcaption>app/controllers/reactions_controller.rb</figcaption>
+<pre><code><span class="tok-k">def</span> create
+  channel = Channel.find_by!(slug: params[:channel_slug])
+  message = channel.messages.find(params[:message_id])
+  message.add_reaction(params[:emoji].to_s)
+  head :no_content
+<span class="tok-k">end</span></code></pre>
+</figure>
+
+<p>Reactions are stored as a small JSON counts hash on the message, and <code>add_reaction</code> guards against anything outside the fixed emoji set before incrementing. The <code>update</code> fires the model's <code>after_update_commit</code>, which <code>broadcast_replace_to</code>s the one message to the whole channel — so the clicker's optimistic +1 is confirmed and every <em>other</em> client receives the authoritative new count via a surgical replace of that single message element. The optimistic update makes the clicker's own UI feel instant; the broadcast makes it correct for the room.</p>
+
+<p>One subtlety the replace creates: when the message element is swapped out from under you, the feed could jump. That is what the <code>chat</code> controller is for. It pins the scroll position to the bottom and re-pins on <em>any</em> DOM mutation in the feed — a new appended message, a replaced one, anything.</p>
+
+<figure class="code">
+<figcaption>app/javascript/controllers/chat_controller.js</figcaption>
+<pre><code>connect() {
+  this.scrollToBottom()
+  this.observer = new MutationObserver(() =&gt; this.scrollToBottom())
+  this.observer.observe(this.scrollTarget, { childList: <span class="tok-k">true</span>, subtree: <span class="tok-k">true</span> })
+}</code></pre>
+</figure>
+
+<p>A <code>MutationObserver</code> is the right tool precisely because the feed is mutated by Turbo Stream broadcasts that the controller never sees directly — it does not know <em>when</em> an append or replace lands, only that the DOM changed. Observing mutations decouples "keep me scrolled to the bottom" from the transport entirely.</p>
+
+<h2><span class="num">06</span>One identity across HTTP and WebSocket</h2>
+
+<p>Chat needs to attribute messages and presence to a person, and that identity has to be the same whether a request arrives over HTTP or over the Action Cable socket. Cadence solves this with a shared <strong>encrypted cookie</strong>. On the HTTP side, the application controller resolves a stable member for the browser and writes their id and name into encrypted, permanent cookies.</p>
+
+<figure class="code">
+<figcaption>app/controllers/application_controller.rb</figcaption>
+<pre><code><span class="tok-c"># Persisted in an encrypted cookie that ActionCable's Connection also reads.</span>
+<span class="tok-k">def</span> current_member
+  @current_member ||= <span class="tok-k">begin</span>
+    member = … <span class="tok-c"># resolve from cookies.encrypted[:member_id] or fall back</span>
+    cookies.encrypted.permanent[:member_id]   = member.id
+    cookies.encrypted.permanent[:member_name] = member.name
+    member
+  <span class="tok-k">end</span>
+<span class="tok-k">end</span></code></pre>
+</figure>
+
+<p>The cable connection reads the same encrypted cookie to identify itself. <code>identified_by :member_name</code> makes that name available to every channel — which is exactly what <code>PresenceChannel</code> and <code>TypingChannel</code> use to label rosters and typing events.</p>
+
+<figure class="code">
+<figcaption>app/channels/application_cable/connection.rb</figcaption>
+<pre><code><span class="tok-k">module</span> ApplicationCable
+  <span class="tok-k">class</span> Connection &lt; ActionCable::Connection::Base
+    identified_by :member_name
+
+    <span class="tok-k">def</span> connect
+      <span class="tok-k">self</span>.member_name = cookies.encrypted[:member_name].presence || <span class="tok-s">"Guest"</span>
+    <span class="tok-k">end</span>
+  <span class="tok-k">end</span>
+<span class="tok-k">end</span></code></pre>
+</figure>
+
+<p>Because both sides decrypt the same cookie, there is no separate token exchange, no auth handshake bolted onto the socket. The browser proves who it is once, via a cookie the framework already manages, and both transports trust it. In a real product this is exactly where your existing session/auth would plug in — the pattern is identical, you would just identify the connection by a real user.</p>
+
+<h2><span class="num">07</span>Why this matters for a product team</h2>
+
+<p>The reason to care about Cadence is not chat specifically — it is the class of features it stands in for. Live message feeds, threaded comments, presence rosters, "someone is typing," activity tickers, notification badges, live dashboards: every one of these is realtime collaboration, and every one of them is built here with the same two primitives.</p>
+
+<div class="twocol">
+  <div class="card">
+    <span class="kicker">No extra tier</span>
+    <h4>It's the same Rails app</h4>
+    <p>Realtime ships on the monolith. No standalone Node websocket service to deploy, scale, secure, and keep in sync with your data model. Action Cable + Turbo, backed by Solid Cable, on the box you already run.</p>
+  </div>
+  <div class="card">
+    <span class="kicker">No SPA tax</span>
+    <h4>No heavy frontend framework</h4>
+    <p>The server renders the same partials it always has. There is no client-side view layer to duplicate your templates in, and no JSON API to version. Stimulus controllers stay small and single-purpose.</p>
+  </div>
+  <div class="card">
+    <span class="kicker">Hiring &amp; ownership</span>
+    <h4>Any Rails dev can own it</h4>
+    <p>A broadcast is a model callback. A roster is a cache hash. The whole realtime surface is readable Ruby and a handful of Stimulus files — not a separate codebase needing a separate specialist to maintain.</p>
+  </div>
+  <div class="card">
+    <span class="kicker">Right tool, right job</span>
+    <h4>Two transports, clear rules</h4>
+    <p>HTML-over-the-wire for things you persist and re-render; raw cable JSON for transient signals. The decision is principled, not ad hoc, so the next feature slots into one of two known patterns.</p>
+  </div>
+</div>
+
+<p>For a team weighing whether realtime "needs" a websocket microservice and a React front end, Cadence is the counter-argument in working code: a small, maintainable Rails surface delivers the multiplayer feel users expect, and it stays inside the stack the rest of the application already lives in.</p>
+
+<h2><span class="num">08</span>Honest trade-offs &amp; production hardening</h2>
+
+<p>This is a showcase app on a single box, and it is built that way on purpose. Shipping the same patterns into production means tightening several things — none of them surprising, all of them real:</p>
+
+<ul>
+  <li><strong>Authentication.</strong> Identity here is a demo convenience: a stable member is picked for the browser, and an unauthenticated cable connection falls back to <code>"Guest"</code>. A real deployment would reject unauthenticated connections in <code>Connection#connect</code> and identify by an actual authenticated user, with channel-level authorization so a subscriber can only stream channels they belong to.</li>
+  <li><strong>Cable scaling.</strong> Solid Cable on SQLite is ideal for a single-box demo and zero external dependencies. Across multiple app servers you would move the cable adapter to a backend that fans out between processes — a Redis adapter, or Solid Cable pointed at a shared database — so a broadcast on one node reaches subscribers on another.</li>
+  <li><strong>Presence at scale.</strong> A per-channel <code>Rails.cache</code> hash with read-modify-write on every heartbeat is fine for modest rooms but is a contention point under load, and last-write-wins can race. High-traffic presence wants atomic per-member keys (or a Redis set with TTLs) rather than rewriting one shared hash.</li>
+  <li><strong>Rate limiting.</strong> The reaction and message endpoints do no throttling, and typing/presence heartbeats are client-driven. Production would rate-limit message creation and reaction spam, and cap how often a client can heartbeat, to keep a single tab from flooding the channel.</li>
+  <li><strong>Message volume.</strong> The feed loads the last fifty messages and appends forever. A real channel needs pagination / lazy history loading and a ceiling on the live DOM so long-lived tabs don't grow unbounded.</li>
+</ul>
+
+<p>None of these change the architecture — they harden it. The two-transport split, the model-as-broadcaster, the shared-cookie identity, the optimistic-then-reconciled reaction: those patterns are exactly what you would keep. That is the point of a portfolio piece — to show the bones you would build a production system on, and to be honest about the muscle you would add.</p>
+
+</div>
+</main>
+
+<footer>
+  <div class="wrap">
+    <div class="stack-title">The stack</div>
+    <div class="stack">
+      <span class="chip">Rails 8.1</span>
+      <span class="chip">Turbo 8</span>
+      <span class="chip">Stimulus</span>
+      <span class="chip">Action Cable + Solid Cable</span>
+      <span class="chip">importmap</span>
+      <span class="chip">Tailwind v4</span>
+      <span class="chip">SQLite</span>
+    </div>
+    <p class="sig">
+      <strong>Levelbrook Consulting</strong> — senior Ruby on Rails &amp; Hotwire staff augmentation.<br>
+      Cadence is one of six apps in the Levelbrook Hotwire Showcase. · <a href="mailto:levelbrookteam@gmail.com">levelbrookteam@gmail.com</a>
+    </p>
+  </div>
+</footer>
+
+</body>
+</html>

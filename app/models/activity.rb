@@ -5,13 +5,20 @@ class Activity
   Item = Struct.new(:icon, :actor, :verb, :subject, :context, :at, keyword_init: true)
 
   class << self
+    # Rebuilt on every call so the feed always reflects the latest records — a
+    # new chat message, comment, or moved issue shows up immediately. The source
+    # tables are tiny, so the handful of queries is cheap. (Previously this was
+    # memoized at class level, which meant a long-running process served a stale
+    # feed until a manual reset; for a real high-traffic feed you'd cache this
+    # under a key derived from max(updated_at) of the source tables instead.)
     def all
-      @all ||= build.sort_by(&:at).reverse
+      build.sort_by(&:at).reverse
     end
 
-    def reset!
-      @all = nil
-    end
+    # Retained as a no-op: the feed is now rebuilt on every read, so there is no
+    # cache to clear. Kept so existing callers/tests stay valid and to document
+    # that staleness is no longer a concern.
+    def reset! = nil
 
     def total = all.size
 
