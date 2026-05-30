@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Six production-shaped apps, one Rails codebase, zero SPA — a Hotwire field report</title>
+<meta name="description" content="We built a portfolio of six distinct, realtime, production-shaped web apps on a single Rails 8 + Hotwire codebase — no React, no client state model, no API layer. Here is what each one proves, the code that makes it work, and where the approach actually bites.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&family=Inter+Tight:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#f7f5f0; --surface:#fff; --ink:#14171a; --soft:#3f464d; --faint:#767d85;
+    --hair:#e6e2d8; --accent:#c8402f; --accent-soft:#f5e3df; --code-bg:#15181c; --code-ink:#e8e6df;
+    --mono:"JetBrains Mono",ui-monospace,SFMono-Regular,monospace;
+    --sans:"Inter Tight",ui-sans-serif,system-ui,sans-serif;
+    --display:"Bricolage Grotesque",var(--sans);
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--sans);line-height:1.62;font-size:17px;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:760px;margin:0 auto;padding:0 22px}
+  header.masthead{border-bottom:1px solid var(--hair);background:var(--surface)}
+  header.masthead .wrap{padding-top:18px;padding-bottom:18px;display:flex;align-items:center;gap:10px}
+  .logo{display:grid;place-items:center;width:30px;height:30px;border-radius:7px;background:var(--ink);color:#fff;font-family:var(--display);font-weight:800;font-size:15px}
+  .brand{font-family:var(--display);font-weight:700;letter-spacing:-.01em}
+  .brand small{display:block;font-family:var(--mono);font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--faint);font-weight:500}
+  article{padding:56px 0 40px}
+  .eyebrow{font-family:var(--mono);font-size:.72rem;letter-spacing:.16em;text-transform:uppercase;color:var(--accent)}
+  h1{font-family:var(--display);font-size:2.7rem;line-height:1.04;letter-spacing:-.022em;margin:.35em 0 .25em;font-weight:800}
+  h2{font-family:var(--display);font-size:1.6rem;letter-spacing:-.012em;margin:2.6em 0 .4em;font-weight:700;padding-top:.3em}
+  h3{font-size:1.16rem;margin:1.9em 0 .35em;font-weight:700}
+  p,li{color:var(--soft)} strong{color:var(--ink);font-weight:600}
+  a{color:var(--accent);text-decoration:none;border-bottom:1px solid var(--accent-soft)}
+  a:hover{border-bottom-color:var(--accent)}
+  .dek{font-size:1.24rem;line-height:1.5;color:var(--soft);margin:.5em 0 1.4em}
+  .byline{font-family:var(--mono);font-size:.78rem;color:var(--faint);display:flex;flex-wrap:wrap;gap:.4em 1.1em;border-top:1px solid var(--hair);border-bottom:1px solid var(--hair);padding:.9em 0;margin-bottom:2.2em}
+  ul,ol{padding-left:1.25em} li{margin:.32em 0}
+  code{font-family:var(--mono);font-size:.86em;background:#fff;border:1px solid var(--hair);border-radius:4px;padding:.05em .34em}
+  pre{background:var(--code-bg);color:var(--code-ink);border-radius:12px;padding:18px 18px;overflow-x:auto;font-family:var(--mono);font-size:.8rem;line-height:1.65;margin:1.3em 0;border:1px solid #23272e}
+  pre code{background:none;border:none;padding:0;color:inherit;font-size:inherit}
+  .cm{color:#8a93a0}        /* comment */
+  .kw{color:#e0826f}        /* keyword  */
+  .st{color:#9ecb8a}        /* string   */
+  .fn{color:#c8b06a}        /* method   */
+  blockquote{margin:1.6em 0;padding:.2em 0 .2em 1.2em;border-left:3px solid var(--accent);font-family:var(--display);font-size:1.3rem;line-height:1.4;color:var(--ink);font-weight:600}
+  .appcard{border:1px solid var(--hair);border-radius:14px;background:var(--surface);padding:22px 22px 6px;margin:1.4em 0;border-top:4px solid var(--ac,#c8402f)}
+  .appcard .tag{font-family:var(--mono);font-size:.68rem;letter-spacing:.1em;text-transform:uppercase;color:var(--faint)}
+  .appcard h3{margin-top:.1em}
+  .chips{display:flex;flex-wrap:wrap;gap:.4em;margin:.4em 0 1em}
+  .chip{font-family:var(--mono);font-size:.66rem;border:1px solid var(--hair);border-radius:999px;padding:.12em .6em;color:var(--soft)}
+  .hard{font-family:var(--mono);font-size:.72rem;text-transform:uppercase;letter-spacing:.1em;color:var(--accent);margin-top:1.1em}
+  .grid2{display:grid;gap:12px;grid-template-columns:1fr 1fr;margin:1.2em 0}
+  @media(max-width:620px){.grid2{grid-template-columns:1fr} h1{font-size:2.1rem}}
+  .note{background:var(--accent-soft);border-radius:10px;padding:14px 16px;font-size:.95rem;margin:1.4em 0}
+  table{width:100%;border-collapse:collapse;font-size:.9rem;margin:1.2em 0}
+  th,td{text-align:left;padding:.5em .6em;border-bottom:1px solid var(--hair);vertical-align:top}
+  th{font-family:var(--mono);font-size:.66rem;letter-spacing:.08em;text-transform:uppercase;color:var(--faint)}
+  hr{border:0;border-top:1px solid var(--hair);margin:2.4em 0}
+  footer{border-top:1px solid var(--hair);background:var(--surface);margin-top:3em}
+  footer .wrap{padding:34px 22px 60px}
+  .cta{display:inline-block;background:var(--accent);color:#fff;border:none;border-radius:9px;padding:.7em 1.2em;font-weight:600;margin-top:.4em}
+  .cta:hover{border-bottom-color:transparent;opacity:.92}
+  .small{font-size:.82rem;color:var(--faint);font-family:var(--mono)}
+</style>
+</head>
+<body>
+
+<header class="masthead">
+  <div class="wrap">
+    <span class="logo">L</span>
+    <span class="brand">Levelbrook Consulting<small>Ruby on Rails · Hotwire practice</small></span>
+  </div>
+</header>
+
+<article>
+<div class="wrap">
+
+  <p class="eyebrow">Engineering · Hotwire</p>
+  <h1>Six production-shaped apps, one Rails codebase, zero SPA</h1>
+  <p class="dek">A field report on building a kanban board, a realtime chat, a live ops dashboard,
+  a polling app, a spreadsheet, and a music player — all on one Rails&nbsp;8 + Hotwire stack, with no
+  React, no client-side state model, and no JSON API. Here's what each one proves, the code that
+  makes it work, and where the approach actually bites.</p>
+
+  <div class="byline">
+    <span>By the Levelbrook engineering team</span>
+    <span>~20&nbsp;min read</span>
+    <span>Live: <a href="https://demo.levelbrook.com">demo.levelbrook.com</a></span>
+  </div>
+
+  <p>"Rails can't do modern, app-like UX — you'll end up rewriting the front end in React."
+  We hear this in almost every Rails consulting conversation, and we've never fully agreed with it.
+  So instead of arguing, we built the counter-argument: <strong>a switcher that opens into six distinct,
+  realtime, production-shaped products, every one of them server-rendered HTML over the wire.</strong></p>
+
+  <p>Not six variations on a to-do list. Six genuinely different problem domains, each chosen because it
+  exercises a <em>different</em> corner of the modern Hotwire stack — drag-and-drop with live multi-user
+  sync, optimistic UI, background-job progress streaming, server-computed spreadsheet formulas, and
+  audio that survives navigation. One Rails app. One SQLite file. One themeable shell. 102 tests.
+  Deployed to a single box with Kamal.</p>
+
+  <p>You can click through all of them right now:
+  <a href="https://demo.levelbrook.com">demo.levelbrook.com</a>. The rest of this post is the
+  interesting part — <em>how</em>, and the judgment calls that actually matter.</p>
+
+  <blockquote>The thesis isn't "Hotwire instead of React." It's "the server already has the HTML —
+  stop rebuilding it on the client."</blockquote>
+
+  <!-- =================================================================== -->
+  <h2>The shape: one shell, six products</h2>
+
+  <p>The whole portfolio is a single Rails app. The root URL is a gallery; each card opens an app that
+  re-skins the chrome and mounts its own models, controllers, and Stimulus controllers. We didn't want
+  six near-identical apps in different colors, so each lives in its own domain and namespace.</p>
+
+  <p>The re-skinning is almost embarrassingly cheap. There's a registry of apps:</p>
+
+<pre><code><span class="cm"># app/lib/showcase.rb</span>
+<span class="kw">module</span> Showcase
+  App = <span class="fn">Data.define</span>(<span class="st">:key</span>, <span class="st">:name</span>, <span class="st">:tagline</span>, <span class="st">:accent</span>, <span class="st">:accent_soft</span>, <span class="st">:glyph</span>, <span class="st">:primitives</span>)
+
+  APPS = [
+    App.new(key: <span class="st">:workspace</span>, name: <span class="st">"Workspace"</span>, accent: <span class="st">"#c8402f"</span>, …),
+    App.new(key: <span class="st">:pulse</span>,     name: <span class="st">"Pulse"</span>,     accent: <span class="st">"#4f46e5"</span>, …),
+    <span class="cm"># …four more</span>
+  ]
+<span class="kw">end</span></code></pre>
+
+  <p>The controller infers which app it belongs to from its path (namespaced controllers resolve from
+  their namespace; everything else is the workspace), and the layout themes itself by overriding a
+  single CSS custom property on a wrapper:</p>
+
+<pre><code><span class="cm">&lt;%# app/views/layouts/application.html.erb %&gt;</span>
+&lt;div class=<span class="st">"flex min-h-full"</span>
+     style=<span class="st">"--color-accent: &lt;%= current_app.accent %&gt;;
+            --color-accent-soft: &lt;%= current_app.accent_soft %&gt;;"</span>&gt;
+  &lt;%= render <span class="st">"shared/app_sidebar"</span> %&gt;
+  …
+&lt;/div&gt;</code></pre>
+
+  <p>Every view in every app references <code>var(--color-accent)</code> instead of a hard-coded color,
+  so one inline style restyles an entire product. Adding a seventh app is one registry row plus its own
+  views — the shell needs no changes. This is the kind of leverage that makes a small team move fast,
+  and it's the same instinct we bring to client codebases: <strong>find the one seam that makes the next
+  ten features cheap.</strong></p>
+
+  <!-- =================================================================== -->
+  <h2>The six, and what each one proves</h2>
+
+  <!-- WORKSPACE -->
+  <div class="appcard" style="--ac:#c8402f">
+    <span class="tag">01 · Workspace — project delivery</span>
+    <h3>A Jira-grade board where drag-and-drop syncs across browsers</h3>
+    <div class="chips"><span class="chip">SortableJS</span><span class="chip">broadcasts_refreshes</span><span class="chip">Turbo morph</span><span class="chip">Frame drawer</span><span class="chip">instant inline edit</span></div>
+    <p>Drag-and-drop with live multi-user sync is the canonical "you need a SPA for that" feature. Here it's
+    a thin Stimulus wrapper around SortableJS, one PUT endpoint, and a single line on the model:</p>
+<pre><code><span class="kw">class</span> Project &lt; ApplicationRecord
+  has_many <span class="st">:columns</span>
+  <span class="fn">broadcasts_refreshes</span>   <span class="cm"># ← that is the entire realtime layer</span>
+<span class="kw">end</span></code></pre>
+    <p>On drop, the browser PUTs the card's new column and position. The controller saves and returns
+    <code>204 No Content</code> — it does <em>not</em> re-render anything. The <code>broadcasts_refreshes</code>
+    line fires a refresh over Action Cable; every connected client (including the one that dragged) morphs
+    its DOM with idiomorph, so only the moved card changes. Scroll position and focus are preserved.</p>
+    <p class="hard">The part that bit us</p>
+    <p>Morphing fights drag. If a broadcast lands mid-drag, idiomorph tries to rewrite the node SortableJS
+    is holding. The fix is to keep drag state DOM-resident and let the server be the single source of order:
+    return 204, never echo the drag back to its originator, and let the morph reconcile everyone uniformly.</p>
+    <p class="hard">The latency insight (inline edit)</p>
+    <p>Click-to-edit usually does a round trip just to <em>enter</em> edit mode (GET the form, swap the
+    frame). That network hop is the lag you feel. We render the display and the edit form together and
+    toggle to the input client-side instantly; submitting still hits the server, which returns the updated
+    field and re-broadcasts. Snappy on click, authoritative on save — and the GET still works as a no-JS
+    fallback.</p>
+  </div>
+
+  <!-- CADENCE -->
+  <div class="appcard" style="--ac:#0d9488">
+    <span class="tag">02 · Cadence — team comms</span>
+    <h3>Campfire-style chat: presence, typing, append streams, optimistic reactions</h3>
+    <div class="chips"><span class="chip">broadcast_append_to</span><span class="chip">broadcast_replace_to</span><span class="chip">Action Cable presence</span><span class="chip">optimistic UI</span></div>
+    <p>Chat is where the morph-everything default is <em>wrong</em>, and knowing that is the actual skill.
+    A new message shouldn't re-render the whole conversation; it should append. A reaction shouldn't
+    append; it should replace one message. So the model uses three different broadcast verbs deliberately:</p>
+<pre><code><span class="kw">class</span> Message &lt; ApplicationRecord
+  after_create_commit { <span class="fn">broadcast_append_to</span>  channel, target: <span class="st">"messages"</span>,    partial: <span class="st">"messages/message"</span> }
+  after_update_commit { <span class="fn">broadcast_replace_to</span> channel, target: <span class="fn">dom_id</span>(<span class="kw">self</span>), partial: <span class="st">"messages/message"</span> }
+<span class="kw">end</span></code></pre>
+    <p>Presence and typing ride <em>raw</em> Action Cable — they're ephemeral, non-DOM state, so streaming
+    HTML for them would be the wrong tool. Reactions are optimistic: the count bumps in the browser the
+    instant you click, then the server persists it and <code>broadcast_replace_to</code> reconciles the
+    number for everyone.</p>
+    <p class="hard">The rule we keep</p>
+    <p><strong>Morph for complex pages, append for feeds, replace for a single item, raw cable for ephemeral
+    state.</strong> Reaching for the right one is judgment; defaulting to "refresh everything" is how realtime
+    Rails apps get slow.</p>
+  </div>
+
+  <!-- PULSE -->
+  <div class="appcard" style="--ac:#4f46e5">
+    <span class="tag">03 · Pulse — monitoring</span>
+    <h3>A live ops dashboard with morphing SVG charts and a streamed deploy bar</h3>
+    <div class="chips"><span class="chip">server-rendered SVG</span><span class="chip">Active Job → Turbo Stream</span><span class="chip">lazy frames</span><span class="chip">no charting JS</span></div>
+    <p>Everyone assumes dashboards need a charting library and a polling loop. The sparklines here are
+    server-rendered SVG — a helper turns a list of samples into a polyline — and they update by morph
+    when new data arrives. No Chart.js, no <code>setInterval</code>.</p>
+    <p>The headline feature is a deploy that streams its own progress, which is the canonical
+    background-job → browser loop with no polling:</p>
+<pre><code><span class="kw">class</span> Pulse::DeployJob &lt; ApplicationJob
+  <span class="kw">def</span> <span class="fn">perform</span>(service_id)
+    [<span class="st">6</span>, <span class="st">18</span>, <span class="st">33</span>, <span class="st">49</span>, <span class="st">64</span>, <span class="st">78</span>, <span class="st">91</span>, <span class="st">100</span>].each <span class="kw">do</span> |pct|
+      Turbo::StreamsChannel.<span class="fn">broadcast_replace_to</span> <span class="st">"pulse_dashboard"</span>,
+        target: <span class="st">"deploy_status"</span>, partial: <span class="st">"pulse/dashboard/deploy_status"</span>, locals: { pct: }
+      sleep <span class="st">0.45</span>
+    <span class="kw">end</span>
+  <span class="kw">end</span>
+<span class="kw">end</span></code></pre>
+    <p>Open the dashboard in two tabs, run a deploy in one, watch the bar fill in both. Below the fold,
+    a "recent events" panel is a lazy Turbo Frame — deferred to the server so first paint stays fast.</p>
+  </div>
+
+  <!-- BALLOT -->
+  <div class="appcard" style="--ac:#d97706">
+    <span class="tag">04 · Ballot — events</span>
+    <h3>Slido-style live polls where tallies morph across every client</h3>
+    <div class="chips"><span class="chip">optimistic + reconcile</span><span class="chip">broadcast morph</span><span class="chip">morph-survival</span><span class="chip">CSS-bar charts</span></div>
+    <p>Vote and the bar bumps immediately on your screen; the server records it, touches the room, and
+    <code>broadcasts_refreshes</code> morphs the authoritative tallies onto everyone. This one hides the
+    subtlest lesson in the whole project, and it's worth slowing down for.</p>
+    <p class="hard">The bug that teaches the lesson</p>
+    <p>A broadcast re-renders the page <strong>server-side, in a background job, with no session.</strong>
+    So "which option <em>you</em> picked" — a per-user, per-browser fact — cannot come from the broadcast.
+    If you render it server-side it'll be wrong for everyone but the last voter, and the next morph will
+    wipe it anyway. The answer is that per-user state must live on the client and <em>survive the morph</em>.
+    Stimulus makes that clean, because a controller's <code>connect()</code> runs again after every morph:</p>
+<pre><code><span class="cm">// poll_controller.js — re-applies *this browser's* vote after each morph</span>
+<span class="fn">connect</span>() { <span class="kw">this</span>.applyVoted() }
+
+<span class="fn">applyVoted</span>() {
+  <span class="kw">const</span> choice = localStorage.getItem(<span class="kw">this</span>.storageKey)
+  <span class="kw">if</span> (!choice) <span class="kw">return</span>
+  <span class="kw">this</span>.optionTargets.forEach(el =&gt; el.disabled = <span class="kw">true</span>)   <span class="cm">// lock + highlight my pick</span>
+}</code></pre>
+    <p>The tallies are shared and authoritative; the "you voted for X" highlight is local and morph-proof.
+    That split — <strong>global truth on the server, personal state on the client</strong> — is the whole game
+    in collaborative UIs, and it's the kind of thing you only get right after you've shipped a few of them.</p>
+  </div>
+
+  <!-- GRID -->
+  <div class="appcard" style="--ac:#059669">
+    <span class="tag">05 · Grid — data</span>
+    <h3>An Airtable-lite spreadsheet with server-computed formula cells</h3>
+    <div class="chips"><span class="chip">frame-scoped cell edit</span><span class="chip">server formula recalc</span><span class="chip">morph</span><span class="chip">no spreadsheet engine</span></div>
+    <p>Click any cell, edit it inline, blur to save. The <em>Total</em> column and the grand total are
+    formula cells — never stored, always derived:</p>
+<pre><code><span class="kw">class</span> Grid::Row &lt; ApplicationRecord
+  belongs_to <span class="st">:sheet</span>, touch: <span class="kw">true</span>
+  <span class="kw">def</span> <span class="fn">total</span> = qty * unit_price          <span class="cm"># the "formula", computed on the server</span>
+<span class="kw">end</span></code></pre>
+    <p>Editing a cell touches the sheet, which <code>broadcasts_refreshes</code>; idiomorph then updates
+    <em>only</em> the cells whose text actually changed — the edited cell, its row total, the grand total.
+    A spreadsheet, recalculating live across collaborators, with no client-side formula engine and no React.</p>
+  </div>
+
+  <!-- SPINDLE -->
+  <div class="appcard" style="--ac:#7c3aed">
+    <span class="tag">06 · Spindle — media</span>
+    <h3>A player that keeps playing while you browse the whole app</h3>
+    <div class="chips"><span class="chip">data-turbo-permanent</span><span class="chip">Web Audio</span><span class="chip">View Transitions</span></div>
+    <p>"The audio keeps going as you navigate" is a Spotify-grade feature that's genuinely hard in a naive
+    SPA and almost free in Hotwire. The player lives in the layout with <code>data-turbo-permanent</code>,
+    so Turbo never tears it down between navigations — its Stimulus controller (and the Web Audio graph it
+    owns) is created once and outlives every page change.</p>
+    <p>Track rows can't call the permanent controller directly, so they dispatch a window event it listens
+    for — which is exactly what lets the page re-render while the music keeps playing:</p>
+<pre><code><span class="cm">// a track row just announces itself; the permanent player takes over</span>
+window.dispatchEvent(<span class="kw">new</span> CustomEvent(<span class="st">"spindle:play"</span>, { detail: track }))</code></pre>
+    <p>And about the audio: rather than ship copyrighted files, every track is <strong>synthesized live in
+    the browser</strong> with the Web Audio API — real chord progressions (voiced as open fifths and octaves
+    so they're always consonant), shaped by a per-track texture. It's intentionally simple music; the point
+    is the persistence, and audio is only ever started by you. Album art animates between pages with the
+    View Transitions API, feature-detected so unsupported browsers just… navigate.</p>
+  </div>
+
+  <!-- =================================================================== -->
+  <h2>What ties it together</h2>
+
+  <p>A few principles run through all six, and they're the same ones we apply on client engagements:</p>
+
+  <h3>Morph-first, append when it matters</h3>
+  <p>The default realtime strategy is <code>broadcasts_refreshes</code> + idiomorph, because it's one line
+  and it preserves scroll/focus. We drop to surgical <code>broadcast_append_to</code> / <code>replace_to</code>
+  only where a feed or a single item demands it (chat, reactions). Most "you need a SPA" UIs are really just
+  "you need to morph the DOM well," and Turbo 8 does.</p>
+
+  <h3>Optimistic on the client, authoritative on the server</h3>
+  <p>Votes, reactions, and drags all give instant feedback, fire the request, and let the broadcast reconcile.
+  The server is always the source of truth; the client just refuses to feel slow while it waits.</p>
+
+  <h3>Progressive enhancement, for real</h3>
+  <p>Every interaction degrades. Search is a normal GET form before it's a combobox. The issue drawer is a
+  Turbo Frame, but <code>/issues/:id</code> is a real page. Inline edit falls back to a GET'd form. Turn off
+  JavaScript and the apps still work — they just stop being instant. That's not nostalgia; it's resilience
+  and accessibility you get for free when the server owns the HTML.</p>
+
+  <h3>The economics</h3>
+  <p>No client state model to keep in sync. No serializers, no API versioning, no hydration step, no second
+  rendering path. One place to render each piece of UI, and it's the place that already has the data. For a
+  small team or a lean budget, that's not a constraint — it's the advantage.</p>
+
+  <!-- =================================================================== -->
+  <h2>Where this approach actually bites</h2>
+
+  <p>We don't think Hotwire wins every argument, and pretending otherwise would be the tell that we haven't
+  shipped it. Honest limits:</p>
+  <ul>
+    <li><strong>It's a demo, deployed honestly.</strong> One Hetzner box, SQLite, Solid Queue running inside
+    Puma, Kamal for deploys. That's a great fit for this — and the wrong topology for a high-availability
+    product. The patterns scale; this <em>deployment</em> isn't meant to.</li>
+    <li><strong>Refresh-broadcasts re-render.</strong> <code>broadcasts_refreshes</code> re-renders a page
+    fragment server-side and morphs it. On very high-churn screens you'll want surgical streams instead — which
+    is exactly why chat uses append, not refresh. The default is great until it isn't, and knowing the line is
+    the job.</li>
+    <li><strong>Some UI genuinely wants a client framework.</strong> A canvas editor, a 10k-row virtualized
+    grid, an offline-first app — reach for the right tool, ideally as an island, not a full rewrite. "Hotwire
+    first" is a default, not a religion.</li>
+    <li><strong>The synth is a party trick.</strong> It exists to prove the persistence point without shipping
+    audio files. Real product, real tracks.</li>
+  </ul>
+
+  <!-- =================================================================== -->
+  <h2>Stack &amp; numbers</h2>
+  <table>
+    <tr><th>Layer</th><th>Choice</th></tr>
+    <tr><td>Framework</td><td>Rails 8.1, importmap (no Node build step)</td></tr>
+    <tr><td>Front end</td><td>Turbo 8 (morphing + View Transitions), Stimulus, SortableJS, Web Audio</td></tr>
+    <tr><td>Realtime / jobs</td><td>Action Cable on Solid Cable, Active Job on Solid Queue</td></tr>
+    <tr><td>Data / styling</td><td>SQLite, Tailwind v4 (via the gem)</td></tr>
+    <tr><td>Deploy</td><td>Kamal to a single box, Let's Encrypt via kamal-proxy</td></tr>
+    <tr><td>Tests</td><td>102 model/request/integration tests, green</td></tr>
+  </table>
+  <p>Every technique was studied from real open-source Hotwire projects before we built our own version —
+  the board from Trello-clone and Fizzy patterns, chat/presence from the Campfire (ONCE) source, the combobox
+  from hotwire_combobox, the persistent player from Botcasts. Standing on the community's shoulders, then
+  making it ours.</p>
+
+  <hr>
+
+  <!-- =================================================================== -->
+  <h2>Who built this</h2>
+  <p><strong>Levelbrook Consulting</strong> is a principal-led Ruby on Rails staff-augmentation practice
+  backed by a small network of vetted senior engineers. We build production Rails — realtime interfaces,
+  Hotwire front ends, and the unglamorous plumbing that keeps them fast — and we like the problems where
+  "you'll need a SPA for that" turns out not to be true.</p>
+  <p>This portfolio is our answer to a question we get asked constantly, written out in code you can run.
+  If your team is weighing a front-end rewrite, or you just want a senior pair of hands on a Rails codebase
+  for a quarter, we'd genuinely enjoy the conversation.</p>
+
+  <p>
+    <a class="cta" href="https://demo.levelbrook.com">Open the live demos →</a>
+  </p>
+  <p class="small">Try it in two browser tabs side by side — drag a card, vote in a poll, run a deploy.
+  That's where it clicks.</p>
+  <p class="small">Contact: levelbrookteam@gmail.com · Each demo is live at demo.levelbrook.com
+  (/workspace · /channels · /pulse · /ballot · /grid · /spindle). Source available on request.</p>
+
+</div>
+</article>
+
+<footer>
+  <div class="wrap">
+    <span class="brand" style="font-size:1.05rem">Levelbrook Consulting</span>
+    <p class="small" style="margin-top:.5em">Senior Ruby on Rails, staff augmentation, Hotwire front ends.
+    Built without a SPA, on purpose. — levelbrookteam@gmail.com</p>
+  </div>
+</footer>
+
+</body>
+</html>
