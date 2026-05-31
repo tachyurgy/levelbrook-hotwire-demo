@@ -21,15 +21,23 @@ class Spindle::TrackTest < ActiveSupport::TestCase
 
   test "play_payload includes the expected keys" do
     payload = @track.play_payload
-    assert_equal %i[id title album artist hue bpm texture roots duration].sort,
+    assert_equal %i[id title album artist hue audioUrl bpm texture roots duration].sort,
       payload.keys.sort
     assert_equal "Morph & Chill", payload[:title]
     assert_equal "3:12", payload[:duration]
   end
 
-  test "requires a title and roots" do
+  test "synth tracks require a title and roots" do
     assert_not @album.tracks.build(title: "", roots: "1,2", position: 1).valid?
     assert_not @album.tracks.build(title: "x", roots: "", position: 1).valid?
     assert @album.tracks.build(title: "x", roots: "1,2", position: 1).valid?
+  end
+
+  test "file-backed tracks are valid without roots and carry audioUrl" do
+    track = @album.tracks.build(title: "Deep Humidity", position: 1,
+      audio_url: "/spindle/deep-humidity.mp3", duration_label: "2:11")
+    assert track.file_backed?
+    assert track.valid?, track.errors.full_messages.to_sentence
+    assert_equal "/spindle/deep-humidity.mp3", track.play_payload[:audioUrl]
   end
 end

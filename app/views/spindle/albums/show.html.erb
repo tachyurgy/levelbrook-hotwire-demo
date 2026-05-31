@@ -9,10 +9,29 @@
       <h1 class="mt-1 font-display text-4xl font-extrabold tracking-tight"><%= @album.title %></h1>
       <p class="mt-1 text-sm font-medium text-[var(--color-ink-soft)]"><%= @album.artist %></p>
       <p class="mt-1 text-sm text-[var(--color-ink-faint)]"><%= @album.mood %></p>
+      <div class="mt-2"><%= spindle_mode_badge(@album) %></div>
     </div>
   </div>
 
-  <div class="mt-8 overflow-hidden rounded-xl border hairline bg-[var(--color-surface)]">
+  <%# Per-album honesty note so the synth tracks aren't judged as a record. %>
+  <% if @album.synth? %>
+    <div class="mt-6 rounded-xl border hairline bg-[var(--color-cool-50)] px-4 py-3 text-[13px] leading-relaxed text-[var(--color-ink-soft)]">
+      <span class="font-semibold text-[var(--color-ink)]">No audio files here.</span>
+      Each track below is a chord progression the <code class="font-mono text-[12px]">synth_controller</code>
+      renders live with the Web Audio API when you press play — detuned oscillator voices, an FM electric-piano,
+      soft drums, and a convolution reverb, scheduled beat-by-beat in your browser. It's an engineering demo of
+      a real-time audio graph, not a produced recording — that's the point.
+    </div>
+  <% else %>
+    <div class="mt-6 rounded-xl border hairline bg-[var(--color-cool-50)] px-4 py-3 text-[13px] leading-relaxed text-[var(--color-ink-soft)]">
+      <span class="font-semibold text-[var(--color-ink)]">Real public-domain recordings.</span>
+      These are genuine <strong>CC0</strong> tracks (public-domain dedication — free for any use, no attribution
+      required) streamed through the very same persistent player as the synthesized albums. Same Web Audio graph,
+      a real file instead of an oscillator.
+    </div>
+  <% end %>
+
+  <div class="mt-6 overflow-hidden rounded-xl border hairline bg-[var(--color-surface)]">
     <ul class="divide-y hairline">
       <% @tracks.each do |track| %>
         <li class="flex items-center gap-4 px-4 py-3 transition hover:bg-[var(--color-cool-50)]">
@@ -25,12 +44,16 @@
           </button>
           <span class="w-5 shrink-0 text-center font-mono text-[11px] text-[var(--color-ink-faint)]"><%= track.position + 1 %></span>
           <span class="min-w-0 flex-1 truncate text-sm font-medium"><%= track.title %></span>
-          <span class="rounded-full bg-[var(--color-cool-100)] px-2 py-0.5 font-mono text-[10px] text-[var(--color-ink-soft)]"><%= track.texture %> · <%= track.bpm %>bpm</span>
+          <% if track.file_backed? %>
+            <span class="rounded-full bg-emerald-50 px-2 py-0.5 font-mono text-[10px] text-emerald-700">CC0 · mp3</span>
+          <% else %>
+            <span class="rounded-full bg-[var(--color-cool-100)] px-2 py-0.5 font-mono text-[10px] text-[var(--color-ink-soft)]"><%= track.texture %> · <%= track.bpm %>bpm</span>
+          <% end %>
           <span class="font-mono text-[11px] text-[var(--color-ink-faint)] tabular-nums"><%= track.duration_label %></span>
         </li>
       <% end %>
     </ul>
   </div>
 
-  <%= technique_caption "Play a track, then jump to another album from the left rail — the player bar is data-turbo-permanent, so its Web Audio graph is never torn down and the music keeps going. Album art animates between pages with the View Transitions API." %>
+  <%= technique_caption "Play a track, then jump to another album from the left rail — the player bar is data-turbo-permanent, so its Web Audio graph is never torn down and the music keeps going. Synth albums render live with Web Audio; CC0 albums stream a real file through the same graph. Album art animates between pages with the View Transitions API." %>
 </div>

@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_05_30_000001) do
+ActiveRecord::Schema[8.1].define(version: 2026_05_30_000002) do
   create_table "ballot_options", force: :cascade do |t|
     t.datetime "created_at", null: false
     t.string "label", null: false
@@ -180,6 +180,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_30_000001) do
     t.string "artist", null: false
     t.datetime "created_at", null: false
     t.string "hue", default: "#7c3aed", null: false
+    t.string "kind", default: "synth", null: false
     t.string "mood"
     t.integer "position", default: 0, null: false
     t.string "slug", null: false
@@ -190,11 +191,12 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_30_000001) do
 
   create_table "spindle_tracks", force: :cascade do |t|
     t.integer "album_id", null: false
+    t.string "audio_url"
     t.integer "bpm", default: 84, null: false
     t.datetime "created_at", null: false
     t.string "duration_label", default: "3:00", null: false
     t.integer "position", default: 0, null: false
-    t.string "roots", null: false
+    t.string "roots"
     t.string "texture", default: "keys", null: false
     t.string "title", null: false
     t.datetime "updated_at", null: false

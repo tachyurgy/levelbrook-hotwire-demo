@@ -11,6 +11,20 @@ module ApplicationHelper
     content_tag :p, text, class: "mt-1 font-mono text-[11px] leading-relaxed text-[var(--color-ink-faint)]"
   end
 
+  # A small pill marking how a Spindle album produces sound: live in-browser
+  # synthesis (no files) vs. a real CC0 public-domain recording. This is the
+  # framing that tells viewers to judge the synth tracks as engineering, not
+  # as a finished record.
+  def spindle_mode_badge(album, cls: "")
+    if album.synth?
+      label, ring, ink = "♪ Live Web Audio · no files", "ring-[var(--color-accent)]/40", "text-[var(--color-accent)]"
+    else
+      label, ring, ink = "CC0 · public-domain audio", "ring-emerald-500/40", "text-emerald-600"
+    end
+    content_tag :span, label,
+      class: "inline-flex items-center rounded-full bg-[var(--color-surface)] px-2 py-0.5 font-mono text-[10px] font-medium ring-1 #{ring} #{ink} #{cls}"
+  end
+
   def priority_icon(priority)
     color = { "urgent" => "text-[var(--color-accent)]", "high" => "text-amber-500",
               "medium" => "text-cool-500", "low" => "text-gray-300" }.fetch(priority, "text-gray-300")
