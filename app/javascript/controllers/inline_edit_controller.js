@@ -13,16 +13,16 @@ export default class extends Controller {
     event.preventDefault()
     this.displayTarget.classList.add("hidden")
     this.formTarget.classList.remove("hidden")
-    const input = this.hasInputTarget ? this.inputTarget : null
-    if (input) {
-      input.focus()
-      const len = input.value.length
-      input.setSelectionRange?.(len, len)
+    if (this.hasInputTarget) {
+      this.inputTarget.focus()
+      this.inputTarget.select() // Excel-style: type to replace the cell's value
     }
   }
 
   cancel(event) {
     event?.preventDefault()
+    // Discard any unsaved edit and restore the cell's last-saved value.
+    if (this.hasInputTarget) this.inputTarget.value = this.inputTarget.defaultValue
     this.formTarget.classList.add("hidden")
     this.displayTarget.classList.remove("hidden")
   }
