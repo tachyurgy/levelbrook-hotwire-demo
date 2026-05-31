@@ -18,7 +18,10 @@ class SignupsController < ApplicationController
   def create
     @signup = Signup.new(signup_params)
     if @signup.valid?
-      render turbo_stream: turbo_stream.replace("signup_form", partial: "signups/success", locals: { signup: @signup })
+      # Actually persist it: a real Project + columns + starter cards the user
+      # can open, drag, and find again under Boards.
+      @project = Seeds.create_workspace!(name: @signup.workspace_name, subdomain: @signup.subdomain)
+      render turbo_stream: turbo_stream.replace("signup_form", partial: "signups/success", locals: { signup: @signup, project: @project })
     else
       render turbo_stream: turbo_stream.replace("signup_form", partial: "signups/form", locals: { signup: @signup }),
              status: :unprocessable_entity

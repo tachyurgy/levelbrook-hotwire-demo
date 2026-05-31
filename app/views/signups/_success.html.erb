@@ -6,5 +6,16 @@
   <p class="mt-1 text-sm text-[var(--color-ink-soft)]">
     <span class="font-mono"><%= signup.subdomain %>.levelbrook.app</span> · <%= pluralize(signup.seats, "seat") %> · admin <%= signup.email %>
   </p>
-  <%= link_to "Create another", new_signup_path, class: "btn btn-ghost mt-5", data: { turbo_frame: "_top" } %>
+
+  <p class="mx-auto mt-4 max-w-sm text-[13px] leading-relaxed text-[var(--color-ink-soft)]">
+    Saved as board
+    <span class="issue-key rounded bg-white px-1.5 py-0.5 text-[var(--color-cool-700)]"><%= project.key %></span>
+    with the standard columns and a few starter cards — it now lives under
+    <span class="font-medium text-[var(--color-ink)]">Boards</span> and is ready to drag.
+  </p>
+
+  <div class="mt-5 flex flex-wrap items-center justify-center gap-2">
+    <%= link_to "Open your board →", project_path(project), class: "btn btn-accent", data: { turbo_action: "advance" } %>
+    <%= link_to "Create another", new_signup_path, class: "btn btn-ghost", data: { turbo_action: "advance" } %>
+  </div>
 </div>

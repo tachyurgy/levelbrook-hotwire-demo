@@ -1,73 +1,81 @@
 <% content_for :title, "Levelbrook · Hotwire Showcase" %>
 
 <div class="min-h-full bg-[var(--color-paper)]">
-  <div class="mx-auto max-w-6xl px-5 py-16 sm:py-24">
+  <div class="mx-auto max-w-5xl px-5">
 
-    <%# --- Hero -------------------------------------------------------- %>
-    <header class="max-w-3xl">
+    <%# --- Masthead ---------------------------------------------------- %>
+    <header class="flex items-end justify-between gap-4 border-b-2 border-[var(--color-ink)] pt-10 pb-4">
       <div class="flex items-center gap-2.5">
-        <span class="grid h-8 w-8 place-items-center rounded-lg bg-[var(--color-ink)] font-display text-base font-extrabold text-white">L</span>
-        <span class="eyebrow">Levelbrook Consulting · Hotwire practice</span>
+        <span class="grid h-8 w-8 place-items-center rounded-md bg-[var(--color-ink)] font-display text-base font-extrabold text-white">L</span>
+        <span class="font-display text-lg font-extrabold tracking-tight">Levelbrook Consulting</span>
       </div>
-      <h1 class="mt-6 font-display text-4xl font-extrabold leading-[1.05] tracking-tight sm:text-6xl">
-        Six real apps.<br>One Rails codebase.<br><span class="text-[var(--color-accent)]">Zero SPA.</span>
-      </h1>
-      <p class="mt-5 max-w-2xl text-lg leading-relaxed text-[var(--color-ink-soft)]">
-        Each demo below is a distinct, production-shaped product built on Rails&nbsp;8 + Hotwire —
-        realtime collaboration, optimistic UI, server-rendered dashboards, spreadsheet-grade inline
-        editing, and media that never stops. Pick one and open it; the working software comes first,
-        the technique notes come after.
-      </p>
-      <div class="mt-6 flex flex-wrap items-center gap-x-5 gap-y-2 font-mono text-[11px] text-[var(--color-ink-faint)]">
-        <span>Rails 8.1</span><span>·</span><span>Turbo 8 morphing</span><span>·</span>
-        <span>Stimulus</span><span>·</span><span>Action Cable</span><span>·</span>
-        <span>Solid Queue / Cable</span><span>·</span><span>Tailwind v4</span>
-      </div>
+      <span class="hidden font-mono text-[11px] uppercase tracking-[0.18em] text-[var(--color-ink-faint)] sm:block">Hotwire&nbsp;practice · №&nbsp;01–06</span>
     </header>
 
-    <%# --- App grid ---------------------------------------------------- %>
-    <div class="mt-14 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-      <% @apps.each do |app| %>
+    <%# --- Statement of intent ---------------------------------------- %>
+    <section class="grid gap-x-10 gap-y-6 py-12 sm:py-16 lg:grid-cols-12">
+      <div class="lg:col-span-8">
+        <p class="eyebrow mb-4">The index</p>
+        <h1 class="font-display text-[2.1rem] font-extrabold leading-[1.06] tracking-tight sm:text-[3.25rem]">
+          Six production-shaped interfaces, <span class="text-[var(--color-accent)]">one Rails&nbsp;8 codebase</span>, and not a single-page framework in sight.
+        </h1>
+      </div>
+      <div class="lg:col-span-4 lg:pt-14">
+        <p class="text-[15px] leading-relaxed text-[var(--color-ink-soft)]">
+          Real-time collaboration, optimistic UI, server-rendered dashboards, spreadsheet-grade
+          inline editing, and audio that never stops between page loads. Each one is its own product
+          surface — open it and use it. The working software comes first; the engineering notes come after.
+        </p>
+      </div>
+    </section>
+
+    <%# --- The index: numbered editorial rows -------------------------- %>
+    <nav class="border-t border-[var(--color-ink)]">
+      <% @apps.each_with_index do |app, i| %>
         <%= link_to app_entry_path(app), data: { turbo_action: "advance" },
-              class: "group relative flex flex-col overflow-hidden rounded-2xl border hairline bg-[var(--color-surface)] p-6 transition hover:-translate-y-0.5 hover:shadow-xl",
+              class: "group relative flex items-stretch gap-4 border-b hairline py-6 pl-4 pr-2 transition-colors hover:bg-[var(--color-surface)] sm:gap-7 sm:pl-6",
               style: "--color-accent: #{app.accent}; --color-accent-soft: #{app.accent_soft};" do %>
-          <%# Accent wash %>
-          <span class="pointer-events-none absolute inset-x-0 top-0 h-1" style="background: <%= app.accent %>"></span>
 
-          <div class="flex items-start justify-between">
-            <span class="grid h-12 w-12 place-items-center rounded-xl font-display text-xl font-extrabold text-white shadow-sm" style="background: <%= app.accent %>"><%= app.glyph %></span>
-            <span class="rounded-full border hairline px-2.5 py-1 font-mono text-[10px] uppercase tracking-wider text-[var(--color-ink-faint)]"><%= app.domain %></span>
+          <%# Growing accent rule on the left edge %>
+          <span class="pointer-events-none absolute left-0 top-0 h-full w-[3px] origin-top scale-y-0 bg-[var(--color-accent)] transition-transform duration-300 ease-out group-hover:scale-y-100"></span>
+
+          <%# Index numeral %>
+          <span class="shrink-0 pt-1 font-mono text-[13px] tabular-nums text-[var(--color-ink-faint)] transition-colors group-hover:text-[var(--color-accent)]">
+            <%= format("%02d", i + 1) %>
+          </span>
+
+          <%# Glyph %>
+          <span class="hidden h-12 w-12 shrink-0 place-items-center rounded-xl font-display text-xl font-extrabold text-white shadow-sm sm:grid" style="background: <%= app.accent %>"><%= app.glyph %></span>
+
+          <%# Body %>
+          <div class="min-w-0 flex-1">
+            <div class="flex flex-wrap items-baseline gap-x-3 gap-y-1">
+              <h2 class="font-display text-2xl font-bold tracking-tight transition-colors group-hover:text-[var(--color-accent)] sm:text-[1.7rem]">
+                <%= app.name %>
+              </h2>
+              <span class="font-mono text-[10px] uppercase tracking-[0.16em] text-[var(--color-ink-faint)]"><%= app.domain %></span>
+            </div>
+            <p class="mt-1 text-[15px] leading-relaxed text-[var(--color-ink-soft)]"><%= app.tagline %></p>
+            <div class="mt-3 flex flex-wrap items-center gap-x-2.5 gap-y-1 font-mono text-[11px] text-[var(--color-ink-faint)]">
+              <% app.primitives.each_with_index do |p, pi| %>
+                <% if pi.positive? %><span class="text-[var(--color-hairline)]">·</span><% end %>
+                <span><%= p %></span>
+              <% end %>
+            </div>
           </div>
 
-          <h2 class="mt-5 font-display text-2xl font-bold tracking-tight">
-            <%= app.name %>
-          </h2>
-          <p class="mt-1 text-sm leading-relaxed text-[var(--color-ink-soft)]"><%= app.tagline %></p>
-
-          <div class="mt-4 flex flex-wrap gap-1.5">
-            <% app.primitives.each do |p| %>
-              <span class="rounded-full bg-[var(--color-cool-100)] px-2 py-0.5 font-mono text-[10px] text-[var(--color-ink-soft)]"><%= p %></span>
-            <% end %>
-          </div>
-
-          <div class="mt-5 flex items-center justify-between border-t hairline pt-4">
-            <span class="truncate font-mono text-[10px] text-[var(--color-ink-faint)]">
-              mined from <%= app.repos.join(" · ") %>
-            </span>
-            <span class="ml-2 grid h-7 w-7 shrink-0 place-items-center rounded-full text-[var(--color-accent)] transition group-hover:translate-x-0.5" style="background: <%= app.accent_soft %>">→</span>
-          </div>
+          <%# Arrow %>
+          <span class="grid shrink-0 place-items-center self-center">
+            <span class="grid h-9 w-9 place-items-center rounded-full text-[var(--color-ink-faint)] transition-all duration-200 group-hover:translate-x-0.5 group-hover:bg-[var(--color-accent)] group-hover:text-white">→</span>
+          </span>
         <% end %>
       <% end %>
-    </div>
+    </nav>
 
     <%# --- Footer ------------------------------------------------------ %>
-    <footer class="mt-16 flex flex-col items-start justify-between gap-3 border-t hairline pt-6 text-[var(--color-ink-faint)] sm:flex-row sm:items-center">
-      <p class="font-mono text-[11px]">
-        Built by Levelbrook Consulting — senior Ruby on Rails staff augmentation.
-      </p>
-      <p class="font-mono text-[11px]">
-        Every technique is repurposed from 35 studied open-source Hotwire repos.
-      </p>
+    <footer class="flex flex-col items-start justify-between gap-2 py-10 text-[var(--color-ink-faint)] sm:flex-row sm:items-center">
+      <p class="font-mono text-[11px]">Levelbrook Consulting — senior Ruby on Rails staff augmentation.</p>
+      <p class="font-mono text-[11px]">Rails&nbsp;8.1 · Turbo&nbsp;8 morphing · Stimulus · Action&nbsp;Cable · Solid&nbsp;Queue/Cable · Tailwind&nbsp;v4</p>
     </footer>
   </div>
 </div>

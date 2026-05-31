@@ -1,5 +1,10 @@
 <% content_for :title, "##{@channel.name} — Cadence" %>
 
+<%# Switching channels only swaps THIS frame — the rail, topbar and player stay
+    mounted, so there's no full-document teardown or cable churn on the shell.
+    Frame requests skip the layout (ChannelsController), so the response is just
+    the conversation; with Turbo's hover prefetch it lands instantly. %>
+<%= turbo_frame_tag "conversation", class: "block", data: { turbo_action: "advance" } do %>
 <%# Conversation. The channel list lives in the app rail; this is full-width. %>
 <section class="mx-auto flex h-[calc(100vh-3.5rem)] max-w-4xl flex-col px-5"
          data-controller="chat presence typing"
@@ -40,3 +45,4 @@
     <%= technique_caption "Messages append via broadcast_append_to; reactions broadcast_replace just one message; presence + typing ride raw Action Cable channels — not DOM over the wire." %>
   </footer>
 </section>
+<% end %>

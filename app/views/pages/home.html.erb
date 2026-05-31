@@ -1,6 +1,11 @@
 <% content_for :title, "Levelbrook Workspace" %>
 <% content_for :breadcrumb, "Dashboard" %>
 
+<%# Subscribe to the primary board's refresh stream. Dragging a card on the %>
+<%# snapshot below (or on the full board, or in another tab) broadcasts a %>
+<%# refresh and Turbo morphs this dashboard — counts and all — in place. %>
+<% if @primary %><%= turbo_stream_from @primary %><% end %>
+
 <div class="mx-auto max-w-[1400px] px-5 py-8">
 
   <%# --- Header + quick actions --------------------------------------- %>
@@ -43,10 +48,16 @@
   <%# --- Board snapshot + recent activity ----------------------------- %>
   <div class="mt-6 grid gap-4 lg:grid-cols-3">
 
-    <%# Board snapshot (real columns + top issues) %>
+    <%# Board snapshot — a LIVE mini-board, not a static preview. Each column is
+        a real SortableJS drop zone holding the same draggable cards as the full
+        board; dropping one PUTs its new position and broadcasts_refreshes morphs
+        every connected view (this dashboard included). %>
     <div class="rounded-xl border hairline bg-[var(--color-surface)] lg:col-span-2">
       <div class="flex items-center justify-between border-b hairline px-5 py-3">
-        <h2 class="font-display text-base font-bold tracking-tight">Board snapshot</h2>
+        <div class="flex items-baseline gap-2.5">
+          <h2 class="font-display text-base font-bold tracking-tight">Board snapshot</h2>
+          <span class="hidden font-mono text-[11px] text-[var(--color-ink-faint)] sm:inline">drag to reorder — it's live</span>
+        </div>
         <% if @primary %>
           <%= link_to "Open #{@primary.key} →", project_path(@primary),
                 class: "font-mono text-[11px] text-[var(--color-ink-faint)] hover:text-[var(--color-accent)]",
@@ -56,25 +67,20 @@
       <% if @primary %>
         <div class="grid gap-px overflow-hidden bg-[var(--color-hairline)] sm:grid-cols-2 xl:grid-cols-4">
           <% @primary.columns.each do |column| %>
-            <div class="bg-[var(--color-surface)] p-3.5">
-              <div class="flex items-center justify-between">
+            <div class="bg-[var(--color-surface)] p-3">
+              <div class="flex items-center justify-between px-1">
                 <span class="text-[13px] font-semibold"><%= column.name %></span>
                 <span class="font-mono text-[11px] text-[var(--color-ink-faint)] tabular-nums"><%= column.issues.size %></span>
               </div>
-              <div class="mt-2.5 space-y-1.5">
-                <% column.issues.first(3).each do |issue| %>
-                  <%= link_to project_path(@primary, anchor: dom_id(issue)),
-                        class: "flex items-start gap-1.5 rounded-md border hairline bg-[var(--color-cool-50)] px-2 py-1.5 transition hover:border-[var(--color-accent-soft)]",
-                        data: { turbo_action: "advance" } do %>
-                    <span class="mt-0.5"><%= priority_icon(issue.priority) %></span>
-                    <span class="min-w-0">
-                      <span class="block font-mono text-[10px] text-[var(--color-ink-faint)]"><%= issue.key %></span>
-                      <span class="block truncate text-[12px] leading-snug text-[var(--color-ink)]"><%= issue.title %></span>
-                    </span>
-                  <% end %>
+              <div data-controller="sortable"
+                   data-sortable-group-value="board"
+                   data-column-id="<%= column.id %>"
+                   class="column-cards mt-2 flex max-h-[22rem] min-h-16 flex-col gap-2 overflow-y-auto rounded-lg bg-[var(--color-cool-100)]/50 p-1.5">
+                <% column.issues.each do |issue| %>
+                  <%= render "issues/card", issue: issue %>
                 <% end %>
                 <% if column.issues.empty? %>
-                  <p class="font-mono text-[11px] text-[var(--color-ink-faint)]">—</p>
+                  <p class="px-1 py-2 font-mono text-[11px] text-[var(--color-ink-faint)]">Drop a card here</p>
                 <% end %>
               </div>
             </div>

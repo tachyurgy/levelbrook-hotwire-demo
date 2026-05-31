@@ -19,11 +19,44 @@ module Seeds
     { name: "Done",        wip_limit: nil }
   ].freeze
 
+  # Cards dropped into a freshly created workspace so the new board is real and
+  # immediately draggable, not an empty shell.
+  STARTER_ISSUES = [
+    { title: "Invite your team",              label: "chore",   priority: "high",   points: 2, description: "Add teammates so issues can be assigned and the board fills out." },
+    { title: "Create your first issue",       label: "feature", priority: "medium", points: 3, description: "Capture something real your team needs to ship this week." },
+    { title: "Drag this card to In Progress", label: "feature", priority: "low",    points: 1, description: "Reordering PUTs the new position and broadcasts a morph to every open tab." }
+  ].freeze
+
   def seed_all!
     members = ensure_members
     ensure_channels(members)
     seed_project!("Platform", "LB", "platform", members, board_a)
     seed_project!("Mobile App", "MOB", "mobile", members, board_b)
+  end
+
+  # Persist a brand-new workspace from the signup form: a real Project with the
+  # standard columns and a few starter cards. Returns the saved Project so the
+  # controller can link straight to its live board.
+  def create_workspace!(name:, subdomain:)
+    members = Member.order(:id).to_a
+    project = Project.create!(
+      name:        name,
+      slug:        unique_slug(subdomain.to_s.parameterize.presence || name.to_s.parameterize),
+      key:         unique_key(workspace_key(name, subdomain)),
+      description: "#{name} delivery board."
+    )
+
+    columns = COLUMNS.each_with_index.map do |col, i|
+      project.columns.create!(name: col[:name], position: i, wip_limit: col[:wip_limit])
+    end
+
+    STARTER_ISSUES.each_with_index do |attrs, pos|
+      columns.first.issues.create!(
+        attrs.merge(position: pos, assignee: members.empty? ? nil : members[pos % members.size])
+      )
+    end
+
+    project
   end
 
   def reset_project!(project)
@@ -111,6 +144,31 @@ module Seeds
     end
 
     project
+  end
+
+  # --- workspace naming helpers ----------------------------------------
+
+  # A short board key from the workspace name's initials (fallback: subdomain).
+  def workspace_key(name, subdomain)
+    initials = name.to_s.scan(/[A-Za-z0-9]+/).map { |w| w[0] }.join
+    base = initials.presence || subdomain.to_s
+    (base[0, 4].presence || "WS").upcase
+  end
+
+  def unique_slug(base)
+    base = base.presence || "workspace"
+    candidate = base
+    n = 1
+    candidate = "#{base}-#{n += 1}" while Project.exists?(slug: candidate)
+    candidate
+  end
+
+  def unique_key(base)
+    base = base.to_s.gsub(/[^A-Z0-9]/, "").presence || "WS"
+    candidate = base
+    n = 1
+    candidate = "#{base}#{n += 1}" while Project.exists?(key: candidate)
+    candidate
   end
 
   # --- board content ----------------------------------------------------

@@ -44,12 +44,20 @@
       </div>
 
     <% when :cadence %>
-      <div>
+      <%# Channel switching swaps only the conversation frame, so this rail never
+          re-renders. active-nav keeps the matching link flagged aria-current as
+          the URL changes, and warms each channel up front so clicks land fast. %>
+      <div data-controller="active-nav">
         <p class="eyebrow mb-1.5 px-2">Channels</p>
         <div class="space-y-0.5">
           <% Channel.order(:id).each do |channel| %>
-            <%= shell_nav_link "#{channel.name}", channel_path(channel), icon: "hash",
-                  active: defined?(@channel) && @channel == channel %>
+            <%= link_to channel_path(channel),
+                  data: { turbo_frame: "conversation", turbo_action: "advance", active_nav_target: "link" },
+                  "aria-current": (defined?(@channel) && @channel == channel ? "page" : nil),
+                  class: "group flex items-center gap-2.5 rounded-md px-2.5 py-1.5 text-sm font-medium text-[var(--color-ink-soft)] transition hover:bg-[var(--color-cool-100)] hover:text-[var(--color-ink)] aria-[current=page]:bg-[var(--color-surface)] aria-[current=page]:text-[var(--color-ink)] aria-[current=page]:shadow-sm aria-[current=page]:ring-1 aria-[current=page]:ring-[var(--color-hairline)]" do %>
+              <span class="text-[var(--color-ink-faint)] group-aria-[current=page]:text-[var(--color-accent)]"><%= ws_icon "hash" %></span>
+              <span class="truncate"><%= channel.name %></span>
+            <% end %>
           <% end %>
         </div>
       </div>
