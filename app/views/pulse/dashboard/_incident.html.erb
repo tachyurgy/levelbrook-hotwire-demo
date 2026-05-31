@@ -1,4 +1,4 @@
-<div class="rounded-xl border hairline bg-[var(--color-surface)] p-3 <%= 'opacity-60' if incident.resolved? %>">
+<div id="<%= dom_id(incident) %>" class="rounded-xl border hairline bg-[var(--color-surface)] p-3 <%= 'opacity-60' if incident.resolved? %>">
   <div class="flex items-center justify-between gap-2">
     <span class="rounded px-1.5 py-0.5 font-mono text-[10px] font-semibold uppercase <%= incident.severity_style %>"><%= incident.severity %></span>
     <span class="font-mono text-[10px] text-[var(--color-ink-faint)]"><%= time_ago_in_words(incident.started_at) %> ago</span>

@@ -3,19 +3,17 @@ require "test_helper"
 class Pulse::DashboardControllerTest < ActionDispatch::IntegrationTest
   include ActiveJob::TestHelper
 
-  setup do
-    Pulse.seed!
-  end
+  setup { Pulse.seed! }
 
   test "the dashboard renders successfully" do
     get pulse_root_path
     assert_response :success
+    assert_match "Service health", response.body
   end
 
-  test "simulate enqueues the sample job and returns no_content" do
-    assert_enqueued_with(job: Pulse::SampleJob) do
-      post pulse_simulate_path
+  test "visiting the dashboard kicks off the always-on ticker" do
+    assert_enqueued_with(job: Pulse::TickJob) do
+      get pulse_root_path
     end
-    assert_response :no_content
   end
 end

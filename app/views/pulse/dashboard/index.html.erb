@@ -1,41 +1,34 @@
 <% content_for :title, "Pulse — Live Ops" %>
 
-<%# Subscribe so jobs/incident changes morph the whole board live. %>
+<%# Subscribe once. Every metric, the chart, the service grid, the event feed and
+    incident cards stream in over this channel as the always-on ticker produces
+    samples — targeted Turbo Stream replaces, no page reload, no polling. %>
 <%= turbo_stream_from Pulse::STREAM %>
 
 <div class="mx-auto max-w-6xl px-5 py-8">
+  <%# --- Header ---------------------------------------------------------- %>
   <div class="flex flex-wrap items-end justify-between gap-4">
     <div>
-      <p class="eyebrow">Live operations · server-rendered, morphing</p>
+      <div class="flex items-center gap-2.5">
+        <span class="relative flex h-2.5 w-2.5">
+          <span class="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-500 opacity-70"></span>
+          <span class="relative inline-flex h-2.5 w-2.5 rounded-full bg-emerald-500"></span>
+        </span>
+        <p class="eyebrow text-emerald-600">Live · streaming over Action Cable</p>
+      </div>
       <h1 class="mt-1 font-display text-3xl font-extrabold tracking-tight">Service health</h1>
       <p class="mt-1.5 text-sm text-[var(--color-ink-soft)]">
-        Charts and tallies are rendered on the server and morphed in as events arrive — no charting library, no client polling.
+        Golden signals sampled every <%= Pulse::TICK %>s on the server and pushed the instant they land — server-rendered SVG, no charting library, no client polling.
       </p>
     </div>
-    <%= button_to "Simulate traffic", pulse_simulate_path, class: "btn btn-ghost" %>
+    <%= button_to "Trigger incident", pulse_trigger_incident_path, class: "btn btn-ghost" %>
   </div>
 
-  <%# --- Aggregate tiles ------------------------------------------------ %>
-  <% healthy = @services.reject { |s| s.status == "down" } %>
-  <% avg_latency = healthy.any? ? (healthy.sum(&:latency_ms) / healthy.size) : 0 %>
-  <% tiles = [
-       ["Throughput",  "#{@services.sum(&:throughput)} rps", "across #{@services.size} services"],
-       ["Avg latency", "#{avg_latency} ms", "healthy services, p95"],
-       ["Peak error",  "#{@services.map(&:error_rate).max}%", "worst service"],
-       ["Open incidents", @incidents.reject(&:resolved?).size, "needs attention"]
-     ] %>
-  <div class="mt-6 grid grid-cols-2 gap-3 lg:grid-cols-4">
-    <% tiles.each do |label, value, sub| %>
-      <div class="rounded-xl border hairline bg-[var(--color-surface)] p-4">
-        <p class="eyebrow"><%= label %></p>
-        <p class="mt-2 font-display text-3xl font-extrabold leading-none tracking-tight tabular-nums"><%= value %></p>
-        <p class="mt-1.5 font-mono text-[11px] text-[var(--color-ink-faint)]"><%= sub %></p>
-      </div>
-    <% end %>
-  </div>
+  <%# --- Golden-signals chart + KPI tiles (streamed) -------------------- %>
+  <%= render "pulse/dashboard/metrics", services: @services, timeline: @timeline, open_incidents: @open_incidents %>
 
   <%# --- Deploy widget (job -> streamed progress bar) ------------------- %>
-  <div class="mt-6 rounded-xl border hairline bg-[var(--color-surface)] p-5">
+  <div class="mt-4 rounded-xl border hairline bg-[var(--color-surface)] p-5">
     <div class="flex flex-wrap items-center justify-between gap-3">
       <div>
         <p class="eyebrow">Deploy a service</p>
@@ -53,32 +46,30 @@
   </div>
 
   <%# --- Service grid + incidents -------------------------------------- %>
-  <div class="mt-6 grid gap-4 lg:grid-cols-3">
+  <div class="mt-4 grid gap-4 lg:grid-cols-3">
     <div class="lg:col-span-2">
       <p class="eyebrow mb-3">Services</p>
-      <div class="grid gap-3 sm:grid-cols-2">
-        <% @services.each do |service| %>
-          <%= render "pulse/dashboard/service", service: service %>
-        <% end %>
-      </div>
-      <%= technique_caption "Each card is a server-rendered SVG sparkline. broadcasts_refreshes morphs new samples in — the line redraws, the page doesn't reload." %>
+      <%= render "pulse/dashboard/services", services: @services %>
+      <%= technique_caption "Each card is a server-rendered SVG sparkline. As samples arrive the job broadcasts a replace — the line redraws, the page doesn't reload." %>
     </div>
 
     <div>
       <p class="eyebrow mb-3">Incidents</p>
-      <div class="space-y-2.5">
+      <div id="pulse_incidents" class="space-y-2.5">
         <% @incidents.each do |incident| %>
           <%= render "pulse/dashboard/incident", incident: incident %>
         <% end %>
       </div>
+      <%= technique_caption "Acknowledge / resolve broadcast a targeted replace — instant in every open tab. (The classic Turbo gotcha: a broadcast_refresh is suppressed in the tab that triggered it; a targeted replace isn't.)" %>
     </div>
   </div>
 
-  <%# --- Lazy-loaded events panel -------------------------------------- %>
-  <div class="mt-6">
-    <p class="eyebrow mb-3">Recent events · lazy Turbo Frame</p>
-    <%= turbo_frame_tag :pulse_events, src: pulse_panel_path("events"), loading: :lazy do %>
-      <div class="rounded-xl border hairline bg-[var(--color-surface)] p-5 text-sm text-[var(--color-ink-faint)]">Loading events…</div>
-    <% end %>
+  <%# --- Live event feed (streamed) ------------------------------------ %>
+  <div class="mt-4">
+    <div class="mb-3 flex items-center gap-2">
+      <p class="eyebrow">Event stream</p>
+      <span class="h-1.5 w-1.5 rounded-full bg-emerald-500"></span>
+    </div>
+    <%= render "pulse/dashboard/events_feed", events: @events %>
   </div>
 </div>

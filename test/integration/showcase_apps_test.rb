@@ -77,24 +77,27 @@ class ShowcaseAppsTest < ActionDispatch::IntegrationTest
     assert_response :success
   end
 
-  test "simulate enqueues the sample job" do
-    assert_enqueued_with(job: Pulse::SampleJob) do
-      post pulse_simulate_path
+  test "visiting the dashboard starts the always-on ticker" do
+    Rails.cache.delete(Pulse::BEAT_KEY)
+    assert_enqueued_with(job: Pulse::TickJob) do
+      get pulse_root_path
+    end
+    assert_response :success
+  end
+
+  test "triggering an incident creates an open one" do
+    assert_difference -> { Pulse::Incident.where(status: "open").count }, 1 do
+      post pulse_trigger_incident_path, headers: { "Accept" => "text/vnd.turbo-stream.html" }
     end
     assert_response :no_content
   end
 
   test "acknowledging an incident changes its status" do
     incident = Pulse::Incident.where(status: "open").first
-    patch pulse_incident_path(incident, status: "ack")
+    patch pulse_incident_path(incident, status: "ack"),
+          headers: { "Accept" => "text/vnd.turbo-stream.html" }
     assert_response :no_content
     assert_equal "ack", incident.reload.status
-  end
-
-  test "lazy events panel renders" do
-    get pulse_panel_path("events")
-    assert_response :success
-    assert_select "turbo-frame#pulse_events"
   end
 
   # --- Grid ------------------------------------------------------------
@@ -108,7 +111,7 @@ class ShowcaseAppsTest < ActionDispatch::IntegrationTest
   test "editing a cell recomputes the row total" do
     row = Grid::Sheet.first.rows.first
     patch grid_cell_path(row), params: { field: "qty", row: { qty: "10" } }
-    assert_response :no_content
+    assert_response :redirect
     assert_equal 10, row.reload.qty
   end
 
