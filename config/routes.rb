@@ -49,7 +49,7 @@ Rails.application.routes.draw do
     root "rooms#index"
     resources :rooms, only: [ :index, :show ], param: :slug do
       member { post :reset }
-      resources :polls, only: [] do
+      resources :polls, only: [ :create ] do
         resources :votes, only: [ :create ]
       end
       resources :questions, only: [ :create ] do
@@ -61,8 +61,7 @@ Rails.application.routes.draw do
   # ============================ Pulse (ops dashboard) =====================
   namespace :pulse do
     root "dashboard#index"
-    get  "panels/:panel", to: "dashboard#panel", as: :panel
-    post "simulate", to: "dashboard#simulate", as: :simulate
+    post "incidents/trigger", to: "incidents#trigger", as: :trigger_incident
     resources :deploys, only: [ :create ]
     resources :incidents, only: [ :update ]
   end

@@ -1,6 +1,6 @@
 <%# Replaced with a fresh copy after each submit so the textarea clears. %>
 <%= turbo_frame_tag "new_question" do %>
-  <%= form_with url: ballot_room_questions_path(room), method: :post, class: "rounded-xl border hairline bg-[var(--color-surface)] p-3" do |f| %>
+  <%= form_with url: ballot_room_questions_path(room), scope: :question, method: :post, class: "rounded-xl border hairline bg-[var(--color-surface)] p-3" do |f| %>
     <%= f.text_area :body, rows: 2, required: true,
           placeholder: "Ask the room a question…",
           class: "field-input resize-none text-sm" %>

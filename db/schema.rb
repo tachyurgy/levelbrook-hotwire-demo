@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_05_29_000005) do
+ActiveRecord::Schema[8.1].define(version: 2026_05_30_000001) do
   create_table "ballot_options", force: :cascade do |t|
     t.datetime "created_at", null: false
     t.string "label", null: false
@@ -22,6 +22,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_29_000005) do
   end
 
   create_table "ballot_polls", force: :cascade do |t|
+    t.boolean "ai_generated", default: false, null: false
+    t.string "asker"
     t.datetime "created_at", null: false
     t.integer "position", default: 0, null: false
     t.string "question", null: false

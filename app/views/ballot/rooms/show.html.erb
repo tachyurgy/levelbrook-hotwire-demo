@@ -17,10 +17,11 @@
     <%# --- Polls ----------------------------------------------------- %>
     <section class="space-y-5">
       <p class="eyebrow">Live polls</p>
+      <%= render "ballot/rooms/new_poll", room: @room %>
       <% @polls.each do |poll| %>
         <%= render "ballot/rooms/poll", room: @room, poll: poll %>
       <% end %>
-      <%= technique_caption "Tap an option: your bar bumps optimistically, the server records the vote and touches the room, and broadcasts_refreshes morphs the exact tallies onto every open browser. No charting library — bars are server-computed widths." %>
+      <%= technique_caption "Ask a question and Gemini writes the answer options — the new poll streams onto every open browser via broadcasts_refreshes. Tap an option: your bar bumps optimistically, the server records the vote, and the exact tallies morph in. No charting library — bars are server-computed widths." %>
     </section>
 
     <%# --- Q&A ------------------------------------------------------- %>
