@@ -7,12 +7,13 @@ require "net/http"
 require "json"
 
 module GeminiService
-  # Embedded demo key so the showcase works out of the box. Override in a real
-  # deployment with BALLOT_GEMINI_API_KEY (we deliberately avoid the generic
-  # GEMINI_API_KEY name so an unrelated shell var can't shadow the working key).
+  # API key is read from the environment or Rails credentials only — never
+  # hardcoded. Set BALLOT_GEMINI_API_KEY (we deliberately avoid the generic
+  # GEMINI_API_KEY name so an unrelated shell var can't shadow it) or store it
+  # under credentials at gemini.api_key. When unset, poll_options raises
+  # GeminiService::Error and the controller falls back gracefully.
   API_KEY = ENV["BALLOT_GEMINI_API_KEY"].presence ||
-    Rails.application.credentials.dig(:gemini, :api_key) ||
-    "REDACTED_REVOKED_GEMINI_KEY"
+    Rails.application.credentials.dig(:gemini, :api_key)
 
   MODEL = ENV.fetch("GEMINI_MODEL", "gemini-2.5-flash")
   ENDPOINT = "https://generativelanguage.googleapis.com/v1beta/models/%s:generateContent"
@@ -69,6 +70,8 @@ module GeminiService
   end
 
   def post(body)
+    raise Error, "no Gemini API key configured (set BALLOT_GEMINI_API_KEY)" if API_KEY.blank?
+
     uri = URI(format(ENDPOINT, MODEL))
     uri.query = URI.encode_www_form(key: API_KEY)
 
