@@ -10,7 +10,22 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_05_30_000002) do
+ActiveRecord::Schema[8.1].define(version: 2026_06_02_000001) do
+  create_table "bad_audio_reports", force: :cascade do |t|
+    t.string "clip_id", null: false
+    t.string "clip_url"
+    t.datetime "created_at", null: false
+    t.string "lang"
+    t.string "lang_name"
+    t.string "page_url"
+    t.string "reason"
+    t.string "status", default: "open", null: false
+    t.datetime "updated_at", null: false
+    t.string "user_agent"
+    t.index ["clip_id"], name: "index_bad_audio_reports_on_clip_id"
+    t.index ["status"], name: "index_bad_audio_reports_on_status"
+  end
+
   create_table "ballot_options", force: :cascade do |t|
     t.datetime "created_at", null: false
     t.string "label", null: false

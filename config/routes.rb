@@ -80,4 +80,14 @@ Rails.application.routes.draw do
     root "albums#index"
     resources :albums, only: [ :index, :show ], param: :slug
   end
+
+  # =============== LinguaGuessr "Report bad audio" ingest =================
+  # Standalone API-key-protected JSON endpoint (not part of the showcase apps).
+  namespace :api do
+    namespace :v1 do
+      resources :bad_audio_reports, only: [ :create ]
+      # CORS preflight for the cross-origin POST from lingua.levelbrook.com.
+      match "bad_audio_reports", to: "bad_audio_reports#preflight", via: :options
+    end
+  end
 end
