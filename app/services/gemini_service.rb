@@ -16,10 +16,16 @@ module GeminiService
     Rails.application.credentials.dig(:gemini, :api_key)
 
   MODEL = ENV.fetch("GEMINI_MODEL", "gemini-2.5-flash")
+  # When the primary model returns 503 "high demand", we transparently retry on a
+  # second, typically-less-loaded model so the demo keeps streaming under load.
+  FALLBACK_MODEL = ENV.fetch("GEMINI_FALLBACK_MODEL", "gemini-2.0-flash")
   ENDPOINT = "https://generativelanguage.googleapis.com/v1beta/models/%s:generateContent"
   STREAM_ENDPOINT = "https://generativelanguage.googleapis.com/v1beta/models/%s:streamGenerateContent"
 
   Error = Class.new(StandardError)
+  # Raised only for retryable server-side overload (503/429/UNAVAILABLE), before
+  # any token has been yielded — so retrying the whole request can't duplicate output.
+  Overloaded = Class.new(Error)
 
   module_function
 
@@ -39,16 +45,38 @@ module GeminiService
   #
   # Raises GeminiService::Error on a non-2xx response or transport failure; the
   # caller decides whether to surface w.error(...) or fall back.
-  def stream_text(prompt:, system: nil, temperature: 0.7)
+  def stream_text(prompt:, system: nil, temperature: 0.7, &block)
     raise Error, "no Gemini API key configured (set BALLOT_GEMINI_API_KEY)" if API_KEY.blank?
 
+    # Try the primary model, then the fallback, retrying each on transient 503s.
+    # The Overloaded guard only fires before any token is emitted, so a retry can
+    # never duplicate streamed text. Last error is surfaced if everything fails.
+    attempts = [ [ MODEL, 0.4 ], [ MODEL, 0.9 ], [ FALLBACK_MODEL, 0.0 ] ]
+    last = nil
+
+    attempts.each_with_index do |(model, backoff), i|
+      begin
+        return stream_once(model: model, prompt: prompt, system: system, temperature: temperature, &block)
+      rescue Overloaded => e
+        last = e
+        Rails.logger.warn("[gemini] #{model} overloaded (attempt #{i + 1}); #{i < attempts.size - 1 ? 'retrying' : 'giving up'}")
+        sleep(backoff) if backoff.positive? && i < attempts.size - 1
+      end
+    end
+
+    raise(last || Error.new("model unavailable"))
+  end
+
+  # One streaming request against a specific model. Raises Overloaded on a
+  # retryable 503/429 (before yielding), Error on any other failure.
+  def stream_once(model:, prompt:, system: nil, temperature: 0.7)
     body = {
       contents: [ { role: "user", parts: [ { text: prompt.to_s } ] } ],
       generationConfig: { temperature: temperature }
     }
     body[:systemInstruction] = { parts: [ { text: system } ] } if system.present?
 
-    uri = URI(format(STREAM_ENDPOINT, MODEL))
+    uri = URI(format(STREAM_ENDPOINT, model))
     uri.query = URI.encode_www_form(alt: "sse", key: API_KEY)
 
     http = Net::HTTP.new(uri.host, uri.port)
@@ -62,7 +90,9 @@ module GeminiService
 
     http.request(req) do |res|
       unless res.is_a?(Net::HTTPSuccess)
-        raise Error, "HTTP #{res.code}: #{res.read_body.to_s[0, 300]}"
+        detail = res.read_body.to_s[0, 300]
+        raise Overloaded, "model busy (#{res.code})" if %w[503 429].include?(res.code.to_s) || detail.include?("UNAVAILABLE")
+        raise Error, "HTTP #{res.code}: #{detail}"
       end
 
       buffer = +""

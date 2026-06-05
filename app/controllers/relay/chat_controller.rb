@@ -5,14 +5,14 @@
 class Relay::ChatController < ApplicationController
   # Curated prompt presets shown as one-tap chips. Each is (label, mode, prompt).
   PRESETS = [
-    { label: "Explain SSE",        mode: "text",
-      prompt: "Explain how Server-Sent Events let a server push tokens to a browser as they are generated. Keep it to 3 short sentences." },
-    { label: "Tool call (math)",   mode: "tool",
-      prompt: "What is (47 * 89) + 12? Use the calculator tool." },
-    { label: "Ship-it haiku",      mode: "text",
-      prompt: "Write a short haiku about shipping software with Ruby on Rails." },
-    { label: "Rails vs SPA",       mode: "text",
-      prompt: "In 3 crisp bullet points, why might a team stream AI responses from a Rails backend instead of a separate Node service?" }
+    { label: "How SSE streaming works", mode: "text",
+      prompt: "Walk me through how Server-Sent Events let a server push tokens to a browser the moment they're generated. Cover the long-lived HTTP connection, the text/event-stream content type and data: frame format, how this differs from WebSockets and long-polling, automatic reconnection, and why it's a natural fit for streaming LLM responses. Use a few short paragraphs." },
+    { label: "Agentic tool call (math)", mode: "tool",
+      prompt: "What is (47 * 89) + 12? Use the calculator tool, then explain the result." },
+    { label: "Streaming architecture in Rails", mode: "text",
+      prompt: "Explain in depth how a Rails app streams a live LLM response end-to-end: ActionController::Live writing to response.stream, the ai_stream encoder turning tokens into Vercel AI SDK protocol frames, Server-Sent Events as the transport, and the browser reader parsing each frame. Note the operational gotchas — proxy buffering, threaded servers, and connection limits. Several short paragraphs." },
+    { label: "Why stream AI from Rails, not Node", mode: "text",
+      prompt: "Make the engineering case for streaming AI responses from a Rails backend instead of standing up a separate Node service. Compare operational surface area, keeping business logic and auth in one place, the cost of a second deployment, and where a dedicated Node service would actually be the better call. Give me 4-5 substantive bullet points with a sentence of reasoning each." }
   ].freeze
 
   # "What you can build" — concrete applications the same protocol unlocks once a

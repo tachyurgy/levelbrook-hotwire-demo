@@ -1,49 +1,48 @@
 <% content_for :title, "Relay — live LLM streaming over the AI SDK protocol" %>
 
-<div class="mx-auto max-w-6xl px-5 py-8"
+<%# Single-screen demo: the whole experience is frozen to the viewport height
+    (no page scroll). Only the transcript and the wire inspector scroll, each
+    inside its own panel. 3.5rem is the sticky topbar (h-14). %>
+<div class="flex flex-col overflow-hidden px-4 py-4 sm:px-6"
+     style="height: calc(100dvh - 3.5rem)"
      data-controller="ai-stream"
      data-ai-stream-url-value="<%= relay_messages_path %>">
 
-  <%# --- Header -------------------------------------------------------- %>
-  <header class="flex flex-wrap items-start justify-between gap-3">
-    <div class="max-w-2xl">
+  <%# --- Compact header ------------------------------------------------- %>
+  <header class="flex shrink-0 flex-wrap items-center justify-between gap-x-4 gap-y-2 pb-3">
+    <div class="min-w-0">
       <p class="eyebrow">ActionController::Live · ai_stream · Google Gemini</p>
-      <h1 class="mt-1 font-display text-3xl font-extrabold tracking-tight">
+      <h1 class="font-display text-xl font-extrabold leading-tight tracking-tight sm:text-2xl">
         A live LLM, streamed into Rails over the <span class="text-[var(--color-accent)]">AI SDK protocol</span>
       </h1>
-      <p class="mt-2 text-sm leading-relaxed text-[var(--color-ink-soft)]">
-        Type a prompt. Rails calls Gemini, and every token is encoded by
-        <a href="https://github.com/tachyurgy/ai_stream" class="font-medium text-[var(--color-accent)] hover:underline" rel="noopener">ai_stream</a>
-        — Levelbrook's Ruby port of the Vercel AI SDK data-stream protocol — and pushed down a single
-        Server-Sent-Events response. Watch the answer render <em>and</em> the raw protocol frames that carry it.
-      </p>
     </div>
-    <span class="inline-flex items-center gap-1.5 rounded-full border hairline bg-[var(--color-surface)] px-2.5 py-1 font-mono text-[11px] <%= @live ? "text-emerald-600" : "text-[var(--color-ink-faint)]" %>">
+    <span class="inline-flex shrink-0 items-center gap-1.5 rounded-full border hairline bg-[var(--color-surface)] px-2.5 py-1 font-mono text-[11px] <%= @live ? "text-emerald-600" : "text-[var(--color-ink-faint)]" %>">
       <span class="h-1.5 w-1.5 rounded-full <%= @live ? "bg-emerald-500" : "bg-[var(--color-ink-faint)]" %>"></span>
       <%= @live ? "Gemini live" : "canned tokens (no key)" %>
     </span>
   </header>
 
-  <div class="mt-7 grid gap-6 lg:grid-cols-2">
+  <%# --- Body: chat + wire inspector, filling the remaining height ------- %>
+  <div class="grid min-h-0 flex-1 gap-4 lg:grid-cols-[1fr_1fr]">
 
     <%# --- Chat column ------------------------------------------------- %>
-    <section class="flex min-w-0 flex-col rounded-2xl border hairline bg-[var(--color-paper)]">
+    <section class="flex min-h-0 min-w-0 flex-col overflow-hidden rounded-2xl border hairline bg-[var(--color-paper)]">
       <div data-ai-stream-target="transcript"
-           class="flex-1 space-y-3 overflow-y-auto p-4" style="height: 26rem">
+           class="min-h-0 flex-1 space-y-3 overflow-y-auto p-4">
         <div data-ai-stream-target="empty" class="grid h-full place-items-center text-center">
           <div class="max-w-xs">
-            <span class="grid mx-auto h-10 w-10 place-items-center rounded-xl bg-[var(--color-accent)] font-display text-lg font-extrabold text-white">R</span>
-            <p class="mt-3 text-sm font-medium text-[var(--color-ink)]">Ask anything, or try a preset.</p>
-            <p class="mt-1 text-[13px] text-[var(--color-ink-soft)]">The reply streams token-by-token; the panel on the right shows the wire protocol live.</p>
+            <span class="mx-auto grid h-10 w-10 place-items-center rounded-xl bg-[var(--color-accent)] font-display text-lg font-extrabold text-white">R</span>
+            <p class="mt-3 text-sm font-medium text-[var(--color-ink)]">Ask anything, or tap a preset.</p>
+            <p class="mt-1 text-[13px] text-[var(--color-ink-soft)]">The reply streams in token-by-token; the panel on the right shows the raw protocol frames live.</p>
           </div>
         </div>
       </div>
 
       <%# suggestions (streamed data-* part) %>
-      <div data-ai-stream-target="suggestions" class="flex flex-wrap gap-1.5 px-4 empty:hidden"></div>
+      <div data-ai-stream-target="suggestions" class="flex shrink-0 flex-wrap gap-1.5 px-4 empty:hidden"></div>
 
-      <%# composer %>
-      <form class="border-t hairline p-3" data-action="submit->ai-stream#submit">
+      <%# composer (pinned to the bottom of the chat panel) %>
+      <form class="shrink-0 border-t hairline p-3" data-action="submit->ai-stream#submit">
         <div class="flex items-end gap-2">
           <textarea data-ai-stream-target="input" rows="1" name="prompt"
                     class="field-input resize-none" placeholder="Ask the model something…"
@@ -63,64 +62,25 @@
       </form>
     </section>
 
-    <%# --- Inspector + applications ------------------------------------ %>
-    <section class="min-w-0 space-y-6">
-      <div>
-        <p class="eyebrow mb-2">Wire inspector — live protocol frames</p>
-        <div class="overflow-hidden rounded-2xl border hairline bg-[var(--color-cool-50)]">
-          <div data-ai-stream-target="wire" class="overflow-y-auto" style="height: 16rem">
-            <div class="grid h-full place-items-center px-6 text-center font-mono text-[11px] text-[var(--color-ink-faint)]">
-              data: { "type": "…" }<br>frames stream here as the model responds
-            </div>
-          </div>
-        </div>
-        <%= technique_caption "Each row is one Server-Sent-Events frame the browser receives — the exact JSON the Vercel AI SDK's useChat() consumes. ai_stream encodes start / text-delta / tool-input / tool-output / data-* / finish parts; consecutive deltas collapse into one counted row." %>
+    <%# --- Live wire inspector ----------------------------------------- %>
+    <section class="flex min-h-0 min-w-0 flex-col overflow-hidden rounded-2xl border hairline bg-[var(--color-cool-50)]">
+      <div class="flex shrink-0 items-center justify-between gap-2 border-b hairline px-3 py-2">
+        <p class="eyebrow !mb-0">Wire inspector — live protocol frames</p>
+        <span class="font-mono text-[10px] text-[var(--color-ink-faint)]">Vercel AI SDK data-stream</span>
       </div>
 
-      <div>
-        <p class="eyebrow mb-2">What you can build with this</p>
-        <div class="grid gap-2 sm:grid-cols-2">
-          <% @applications.each do |a| %>
-            <div class="rounded-xl border hairline bg-[var(--color-surface)] p-3">
-              <div class="flex items-center justify-between gap-2">
-                <h3 class="text-[13px] font-semibold text-[var(--color-ink)]"><%= a[:title] %></h3>
-              </div>
-              <p class="mt-1 text-[12.5px] leading-relaxed text-[var(--color-ink-soft)]"><%= a[:body] %></p>
-              <p class="mt-1.5 font-mono text-[10px] text-[var(--color-ink-faint)]"><%= a[:part] %></p>
-            </div>
-          <% end %>
+      <div data-ai-stream-target="wire" class="min-h-0 flex-1 overflow-y-auto">
+        <div data-wire-placeholder class="grid h-full place-items-center px-6 text-center font-mono text-[11px] leading-relaxed text-[var(--color-ink-faint)]">
+          data: { "type": "…" }<br>frames stream here as the model responds
         </div>
       </div>
+
+      <footer class="shrink-0 border-t hairline px-3 py-2 text-[11px] leading-relaxed text-[var(--color-ink-soft)]">
+        Each row is one Server-Sent-Events frame — the exact JSON the AI SDK's
+        <code class="font-mono text-[var(--color-ink)]">useChat()</code> consumes, encoded by
+        <a href="https://github.com/tachyurgy/ai_stream" rel="noopener" class="font-medium text-[var(--color-accent)] hover:underline">ai_stream</a>.
+        <a href="https://github.com/tachyurgy/levelbrook-hotwire-demo/tree/main/app/controllers/relay" rel="noopener" class="font-medium text-[var(--color-accent)] hover:underline">View the controller&nbsp;↗</a>
+      </footer>
     </section>
-  </div>
-
-  <%# --- How it works strip ------------------------------------------- %>
-  <div class="mt-8 rounded-2xl border hairline bg-[var(--color-surface)] p-5">
-    <p class="eyebrow mb-3">The whole controller</p>
-    <pre class="overflow-x-auto rounded-lg bg-[var(--color-ink)] p-4 font-mono text-[12px] leading-relaxed text-[#e8e6df]"><code>class Relay::MessagesController &lt; ApplicationController
-  include ActionController::Live
-
-  def create
-    AiStream::HEADERS.each { |k, v| response.headers[k] = v }
-    response.headers["Content-Type"] = "text/event-stream"
-
-    AiStream::Stream.new do |w|
-      w.start
-      id = w.text_start
-      GeminiService.stream_text(prompt: params[:prompt]) do |delta|
-        w.text_delta(delta, id: id)        # one SSE frame per token
-      end
-      w.text_end(id: id)
-      w.finish
-    end.each { |frame| response.stream.write(frame) }
-  ensure
-    response.stream.close
-  end
-end</code></pre>
-    <p class="mt-3 text-[13px] text-[var(--color-ink-soft)]">
-      That's the entire integration — no Node sidecar, no SPA. The same endpoint can back the AI SDK's
-      <code class="font-mono text-[12px]">useChat()</code> and <code class="font-mono text-[12px]">useObject()</code> hooks directly.
-      Source: <a href="https://github.com/tachyurgy/levelbrook-hotwire-demo/tree/main/app/controllers/relay" class="font-medium text-[var(--color-accent)] hover:underline" rel="noopener">app/controllers/relay</a>.
-    </p>
   </div>
 </div>

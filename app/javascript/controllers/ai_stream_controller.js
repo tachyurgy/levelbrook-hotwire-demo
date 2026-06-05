@@ -25,8 +25,10 @@ export default class extends Controller {
   async send(prompt, mode) {
     if (this.streaming) return
     this.streaming = true
-    this.emptyTarget?.remove()
-    this.suggestionsTarget.innerHTML = ""
+    // Stimulus target getters THROW when the element is gone, so the `?.` is not
+    // enough — guard with hasXTarget. The empty-state only exists on first send.
+    if (this.hasEmptyTarget) this.emptyTarget.remove()
+    if (this.hasSuggestionsTarget) this.suggestionsTarget.innerHTML = ""
     this.setBusy(true)
 
     this.appendUserBubble(prompt)
@@ -186,6 +188,8 @@ export default class extends Controller {
 
   resetWire(mode) {
     this.lastDelta = null
+    // Clear the idle placeholder the first time real frames arrive.
+    this.wireTarget.querySelector("[data-wire-placeholder]")?.remove()
     const head = document.createElement("div")
     head.className = "border-b hairline px-3 py-1.5 font-mono text-[10px] uppercase tracking-[0.16em] text-[var(--color-ink-faint)]"
     head.textContent = `▶ POST /relay/messages (mode: ${mode})`

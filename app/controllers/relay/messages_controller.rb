@@ -7,8 +7,10 @@ class Relay::MessagesController < ApplicationController
   include ActionController::Live
 
   # System prompt that keeps demo answers tight (this runs on a public site).
-  SYSTEM = "You are a concise assistant embedded in an engineering demo. " \
-           "Answer directly and briefly. Never exceed ~120 words."
+  SYSTEM = "You are a knowledgeable assistant embedded in an engineering demo that " \
+           "showcases token-by-token streaming. Answer directly and substantively. " \
+           "Prefer a few short paragraphs or a tight bulleted list; aim for 120–220 " \
+           "words so the streaming is visible, and never exceed ~300 words."
 
   def create
     prompt = params[:prompt].to_s.strip
@@ -50,7 +52,7 @@ class Relay::MessagesController < ApplicationController
 
     if GeminiService.configured?
       GeminiService.stream_text(prompt: prompt, system: SYSTEM) do |delta|
-        w.text_delta(delta, id: id)
+        emit_smoothly(delta) { |piece| w.text_delta(piece, id: id) }
       end
     else
       canned_text.each_char.each_slice(3) do |chars|
@@ -99,7 +101,7 @@ class Relay::MessagesController < ApplicationController
       GeminiService.stream_text(
         prompt: "A calculator tool computed #{expr} = #{result}. In one short, friendly sentence, tell the user the result.",
         system: SYSTEM, temperature: 0.4
-      ) { |delta| w.text_delta(delta, id: id) }
+      ) { |delta| emit_smoothly(delta) { |piece| w.text_delta(piece, id: id) } }
     else
       "#{summary}Tool calls stream as structured parts the UI can render.".each_char.each_slice(3) do |chars|
         w.text_delta(chars.join, id: id)
@@ -108,6 +110,19 @@ class Relay::MessagesController < ApplicationController
     end
     w.text_end(id: id)
     w.finish_step
+  end
+
+  # Gemini batches its output into a handful of large chunks, so a 4-sentence
+  # answer arrives as ~3 deltas and "streaming" reads as a couple of instant
+  # jumps. Re-emit each chunk word-by-word with a tiny pause so the UI actually
+  # animates token-by-token — the entire point of this demo. Whitespace is
+  # preserved exactly (split keeps the separators), so the text reconstructs 1:1.
+  def emit_smoothly(text)
+    text.to_s.split(/(\s+)/).each do |piece|
+      next if piece.empty?
+      yield piece
+      sleep 0.018 unless piece.match?(/\A\s+\z/)
+    end
   end
 
   def canned_text
