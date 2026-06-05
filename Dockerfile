@@ -35,8 +35,10 @@ RUN apt-get update -qq && \
     apt-get install --no-install-recommends -y build-essential git libvips libyaml-dev pkg-config && \
     rm -rf /var/lib/apt/lists /var/cache/apt/archives
 
-# Install application gems
-COPY vendor/* ./vendor/
+# Install application gems. Copy the whole vendor/ tree (NOT `vendor/*`, whose
+# wildcard flattens one directory level and would drop vendor/gems/<gem>/ — the
+# vendored path gems ai_stream/picoglob/fzy_score live there).
+COPY vendor/ ./vendor/
 COPY Gemfile Gemfile.lock ./
 
 RUN bundle install && \
