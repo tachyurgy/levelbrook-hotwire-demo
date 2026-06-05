@@ -1,3 +1,18 @@
+PATH
+  remote: vendor/gems/ai_stream
+  specs:
+    ai_stream (0.1.0)
+
+PATH
+  remote: vendor/gems/fzy_score
+  specs:
+    fzy_score (0.1.0)
+
+PATH
+  remote: vendor/gems/picoglob
+  specs:
+    picoglob (0.1.0)
+
 GEM
   remote: https://rubygems.org/
   specs:
@@ -404,14 +419,17 @@ PLATFORMS
   x86_64-linux-musl
 
 DEPENDENCIES
+  ai_stream!
   bootsnap
   brakeman
   bundler-audit
   capybara
   debug
+  fzy_score!
   image_processing (~> 1.2)
   importmap-rails
   kamal
+  picoglob!
   propshaft
   puma (>= 5.0)
   rails (~> 8.1.3)

@@ -17,7 +17,7 @@ class ApplicationController < ActionController::Base
     segment = controller_path.split("/").first
     key =
       case segment
-      when "ballot", "pulse", "grid", "spindle" then segment.to_sym
+      when "ballot", "pulse", "grid", "spindle", "relay", "forge" then segment.to_sym
       when "channels", "messages", "reactions"  then :cadence
       when "gallery"                            then nil
       else                                           :workspace

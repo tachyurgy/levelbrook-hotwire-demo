@@ -17,6 +17,16 @@ gem "stimulus-rails"
 # Use Tailwind CSS [https://github.com/rails/tailwindcss-rails]
 gem "tailwindcss-rails"
 
+# ----------------------------------------------------------------------------
+# Levelbrook's own open-source gems, vendored as path gems and exercised live
+# by the Relay (ai_stream) and Forge (picoglob/fzy_score) showcase apps. These
+# are zero-dependency pure-Ruby libraries; the demo dogfoods them in production
+# so the gallery is itself proof the gems work. Published copies live at
+# github.com/tachyurgy/{ai_stream,picoglob,fzy_score}.
+gem "ai_stream",  path: "vendor/gems/ai_stream"   # Vercel AI SDK data-stream protocol encoder
+gem "picoglob",   path: "vendor/gems/picoglob"    # bash-style globs -> Ruby Regexp
+gem "fzy_score",  path: "vendor/gems/fzy_score"   # fzy/fzf fuzzy match scoring + positions
+
 # Use Active Model has_secure_password [https://guides.rubyonrails.org/active_model_basics.html#securepassword]
 # gem "bcrypt", "~> 3.1.7"
 

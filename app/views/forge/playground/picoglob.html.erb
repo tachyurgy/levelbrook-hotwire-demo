@@ -1,0 +1,37 @@
+<% content_for :title, "Forge · picoglob — globs to Regexp" %>
+
+<div class="mx-auto max-w-4xl px-5 py-8">
+  <header class="max-w-2xl">
+    <p class="eyebrow">Open source · pure Ruby · zero dependencies</p>
+    <h1 class="mt-1 font-display text-3xl font-extrabold tracking-tight">
+      picoglob — compile globs into <span class="text-[var(--color-accent)]">Ruby Regexps</span>
+    </h1>
+    <p class="mt-2 text-sm leading-relaxed text-[var(--color-ink-soft)]">
+      Bash-style globs (<code class="font-mono text-[12px]">*</code>, <code class="font-mono text-[12px]">**</code>,
+      <code class="font-mono text-[12px]">?</code>, <code class="font-mono text-[12px]">[a-z]</code>,
+      <code class="font-mono text-[12px]">{a,b}</code>, extglobs) against arbitrary strings — not just files on disk.
+      Everything below is computed live by the gem on the server as you type.
+      <a href="https://github.com/tachyurgy/picoglob" class="font-medium text-[var(--color-accent)] hover:underline" rel="noopener">Source &amp; docs →</a>
+    </p>
+  </header>
+
+  <form data-controller="debounce" data-debounce-delay-value="200"
+        data-action="input->debounce#submit"
+        action="<%= forge_picoglob_path %>" method="get" data-turbo-frame="picoglob_results"
+        class="mt-6 space-y-4">
+    <div>
+      <label class="eyebrow mb-1.5 block">Glob pattern</label>
+      <input type="text" name="pattern" value="<%= @pattern %>" autocomplete="off" spellcheck="false"
+             class="field-input font-mono text-[13px]">
+    </div>
+    <div>
+      <label class="eyebrow mb-1.5 block">Test strings — one per line</label>
+      <textarea name="subject" rows="10" spellcheck="false"
+                class="field-input font-mono text-[13px] leading-relaxed"><%= @subject %></textarea>
+    </div>
+  </form>
+
+  <turbo-frame id="picoglob_results" class="mt-6 block">
+    <%= render "forge/playground/picoglob_results" %>
+  </turbo-frame>
+</div>

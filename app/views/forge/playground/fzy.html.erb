@@ -1,0 +1,36 @@
+<% content_for :title, "Forge · fzy_score — fuzzy ranking" %>
+
+<div class="mx-auto max-w-4xl px-5 py-8">
+  <header class="max-w-2xl">
+    <p class="eyebrow">Open source · pure Ruby · zero dependencies</p>
+    <h1 class="mt-1 font-display text-3xl font-extrabold tracking-tight">
+      fzy_score — <span class="text-[var(--color-accent)]">fuzzy ranking</span> with matched positions
+    </h1>
+    <p class="mt-2 text-sm leading-relaxed text-[var(--color-ink-soft)]">
+      The fzy/fzf scoring algorithm in Ruby: type a few characters and every candidate is scored,
+      ranked best-first, and the matched characters are highlighted — exactly what you'd wire into a
+      command palette or quick-open picker. Computed live by the gem on the server.
+      <a href="https://github.com/tachyurgy/fzy_score" class="font-medium text-[var(--color-accent)] hover:underline" rel="noopener">Source &amp; docs →</a>
+    </p>
+  </header>
+
+  <form data-controller="debounce" data-debounce-delay-value="150"
+        data-action="input->debounce#submit"
+        action="<%= forge_fzy_path %>" method="get" data-turbo-frame="fzy_results"
+        class="mt-6 space-y-4">
+    <div>
+      <label class="eyebrow mb-1.5 block">Query</label>
+      <input type="text" name="query" value="<%= @query %>" autocomplete="off" spellcheck="false"
+             placeholder="e.g. rmc" class="field-input font-mono text-[13px]">
+    </div>
+    <div>
+      <label class="eyebrow mb-1.5 block">Candidates — one per line</label>
+      <textarea name="subject" rows="10" spellcheck="false"
+                class="field-input font-mono text-[13px] leading-relaxed"><%= @subject %></textarea>
+    </div>
+  </form>
+
+  <turbo-frame id="fzy_results" class="mt-6 block">
+    <%= render "forge/playground/fzy_results" %>
+  </turbo-frame>
+</div>

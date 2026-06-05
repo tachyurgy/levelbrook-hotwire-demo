@@ -50,6 +50,20 @@ module Showcase
       domain: "Media", accent: "#7c3aed", accent_soft: "#e8dcfb", glyph: "S",
       primitives: [ "data-turbo-permanent", "View Transitions", "lazy track lists", "Web Audio" ],
       repos: %w[botcasts turbo-music-drive]
+    ),
+    App.new(
+      key: :relay, name: "Relay",
+      tagline: "Stream a live LLM into Rails over the AI SDK protocol",
+      domain: "AI engineering", accent: "#e11d48", accent_soft: "#fde4e9", glyph: "R",
+      primitives: [ "ActionController::Live SSE", "ai_stream protocol encoder", "Gemini token stream", "live tool-call parts" ],
+      repos: %w[ai_stream]
+    ),
+    App.new(
+      key: :forge, name: "Forge",
+      tagline: "Interactive playground for Levelbrook's open-source gems",
+      domain: "Open source", accent: "#0891b2", accent_soft: "#d3edf3", glyph: "F",
+      primitives: [ "picoglob glob -> Regexp", "fzy_score fuzzy ranking", "debounced server compute", "matched-position highlight" ],
+      repos: %w[picoglob fzy_score]
     )
   ].freeze
 

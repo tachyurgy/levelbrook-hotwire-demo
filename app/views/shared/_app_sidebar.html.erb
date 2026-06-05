@@ -99,6 +99,31 @@
           <%= shell_nav_link "All albums", spindle_root_path, icon: "music", active: nav_active?(:albums) %>
         </div>
       </div>
+
+    <% when :relay %>
+      <div>
+        <p class="eyebrow mb-1.5 px-2">Demo</p>
+        <div class="space-y-0.5">
+          <%= shell_nav_link "Live chat", relay_root_path, icon: "spark", active: nav_active?(:chat) %>
+        </div>
+      </div>
+      <div>
+        <p class="eyebrow mb-1.5 px-2">Powered by</p>
+        <a href="https://github.com/tachyurgy/ai_stream" rel="noopener"
+           class="flex items-center gap-2.5 rounded-md px-2.5 py-1.5 text-sm font-medium text-[var(--color-ink-soft)] transition hover:bg-[var(--color-cool-100)] hover:text-[var(--color-ink)]">
+          <span class="font-mono text-[10px] text-[var(--color-ink-faint)]">▸</span>
+          <span class="font-mono text-[12px]">ai_stream</span>
+        </a>
+      </div>
+
+    <% when :forge %>
+      <div>
+        <p class="eyebrow mb-1.5 px-2">Gem benches</p>
+        <div class="space-y-0.5">
+          <%= shell_nav_link "picoglob", forge_picoglob_path, icon: "search", active: controller.action_name == "picoglob" %>
+          <%= shell_nav_link "fzy_score", forge_fzy_path, icon: "spark", active: controller.action_name == "fzy" %>
+        </div>
+      </div>
     <% end %>
   </nav>
 

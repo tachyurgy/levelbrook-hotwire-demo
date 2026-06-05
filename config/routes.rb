@@ -81,6 +81,26 @@ Rails.application.routes.draw do
     resources :albums, only: [ :index, :show ], param: :slug
   end
 
+  # ============================ Relay (AI streaming) =====================
+  # The ai_stream flagship: a live LLM chat that streams Google Gemini tokens
+  # to the browser as Vercel-AI-SDK data-stream-protocol frames, encoded by the
+  # vendored `ai_stream` gem over ActionController::Live SSE.
+  namespace :relay do
+    root "chat#index"
+    # POST a prompt; the response body streams SSE protocol frames.
+    resources :messages, only: [ :create ]
+  end
+
+  # ============================ Forge (OSS playgrounds) ==================
+  # Interactive, server-computed playgrounds that dogfood the vendored gems:
+  # picoglob (glob -> Regexp) and fzy_score (fuzzy ranking). Each result panel
+  # is a debounced Turbo Frame whose `src` carries the live inputs.
+  namespace :forge do
+    root "playground#index"
+    get "picoglob", to: "playground#picoglob", as: :picoglob
+    get "fzy",      to: "playground#fzy",      as: :fzy
+  end
+
   # =============== LinguaGuessr "Report bad audio" ingest =================
   # Standalone API-key-protected JSON endpoint (not part of the showcase apps).
   namespace :api do

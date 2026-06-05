@@ -1,0 +1,25 @@
+<%# Live picoglob output: the compiled Regexp + a match verdict per test string. %>
+<div class="space-y-4">
+  <div class="rounded-xl border hairline bg-[var(--color-cool-50)] p-3">
+    <p class="eyebrow mb-1">Compiled Regexp · <span class="text-[var(--color-accent)]"><%= @match_count %>/<%= @results.size %> match</span></p>
+    <% if @error %>
+      <code class="font-mono text-[12.5px] text-red-600">Picoglob error: <%= @error %></code>
+    <% else %>
+      <code class="block break-all font-mono text-[12.5px] text-[var(--color-ink)]"><%= @regexp.inspect %></code>
+      <p class="mt-1 font-mono text-[10px] text-[var(--color-ink-faint)]">Picoglob.to_regexp(<%= @pattern.inspect %>)</p>
+    <% end %>
+  </div>
+
+  <ul class="divide-y hairline overflow-hidden rounded-xl border hairline bg-[var(--color-surface)]">
+    <% @results.each do |path, hit| %>
+      <li class="flex items-center gap-3 px-3 py-2">
+        <% if hit %>
+          <span class="grid h-4 w-4 shrink-0 place-items-center rounded-full bg-emerald-100 font-mono text-[10px] font-bold text-emerald-700">✓</span>
+        <% else %>
+          <span class="grid h-4 w-4 shrink-0 place-items-center rounded-full bg-[var(--color-cool-100)] font-mono text-[10px] text-[var(--color-ink-faint)]">·</span>
+        <% end %>
+        <code class="min-w-0 flex-1 truncate font-mono text-[12.5px] <%= hit ? "text-[var(--color-ink)]" : "text-[var(--color-ink-faint)]" %>"><%= path %></code>
+      </li>
+    <% end %>
+  </ul>
+</div>

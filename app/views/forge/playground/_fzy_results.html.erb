@@ -1,0 +1,23 @@
+<%# Live fzy_score output: candidates ranked best-first with matched chars lit. %>
+<div class="space-y-3">
+  <p class="eyebrow">
+    Ranked · <span class="text-[var(--color-accent)]"><%= @match_count %> match<%= "es" unless @match_count == 1 %></span>
+    <% if @query.present? %>· <span class="font-mono normal-case tracking-normal text-[var(--color-ink-faint)]">FzyScore.filter(<%= @query.inspect %>, …, positions: true)</span><% end %>
+  </p>
+
+  <% if @ranked.empty? %>
+    <div class="rounded-xl border hairline bg-[var(--color-surface)] p-6 text-center text-sm text-[var(--color-ink-soft)]">
+      No candidate fuzzy-matches <code class="font-mono"><%= @query %></code>.
+    </div>
+  <% else %>
+    <ol class="divide-y hairline overflow-hidden rounded-xl border hairline bg-[var(--color-surface)]">
+      <% @ranked.each_with_index do |(candidate, score, positions), i| %>
+        <li class="flex items-center gap-3 px-3 py-2">
+          <span class="w-5 shrink-0 text-right font-mono text-[11px] tabular-nums text-[var(--color-ink-faint)]"><%= i + 1 %></span>
+          <code class="min-w-0 flex-1 truncate font-mono text-[12.5px] text-[var(--color-ink)]"><%= fzy_highlight(candidate, positions) %></code>
+          <%= fzy_score_badge(score) %>
+        </li>
+      <% end %>
+    </ol>
+  <% end %>
+</div>
