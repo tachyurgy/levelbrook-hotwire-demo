@@ -12,6 +12,12 @@ from the live container so the redeploy doesn't blank it — `docker exec <web> 
 
 ---
 
+## 2026-06-05 — Relay (ai_stream + Gemini) & Forge (picoglob/fzy_score) showcase apps
+- **What deployed:** demo.levelbrook.com, gallery grown from 6 to **8 apps**. New: **Relay** (`/relay`) — a live LLM chat streaming Google Gemini token-by-token to the browser as Vercel-AI-SDK data-stream-protocol frames, encoded by the vendored `ai_stream` gem over ActionController::Live SSE, with a live wire inspector + calculator tool-call demo + streamed `data-*` suggestions. **Forge** (`/forge/picoglob`, `/forge/fzy`) — interactive server-computed playgrounds dogfooding `picoglob` (glob→Regexp) and `fzy_score` (fuzzy ranking w/ matched-position highlight).
+- **Changed:** Vendored ai_stream/picoglob/fzy_score as path gems under `vendor/gems/`; added `GeminiService.stream_text` (SSE token stream) + a safe `calculate` tool; registered both apps in `Showcase::APPS` + sidebar + namespace→shell mapping; refreshed gallery masthead. No new models/migrations (stateless — persistent SQLite volume untouched). **Dockerfile fix:** `COPY vendor/* ./vendor/` → `COPY vendor/ ./vendor/` (the wildcard flattened `vendor/gems/`, dropping the path gems at build).
+- **How:** `cd ~/Desktop/levelbrook-hotwire-demo && export KAMAL_REGISTRY_PASSWORD=localpw123 && bin/kamal deploy` (BALLOT_GEMINI_API_KEY already wired through Kamal; GeminiService model = gemini-2.5-flash).
+- **Verified:** All new routes HTTP 200 over HTTPS (`/forge`→302→picoglob as designed). Gallery renders Relay + Forge cards. Live **prod** Gemini SSE stream confirmed: real token deltas + correct protocol frames (`start`/`text-start`/`text-delta`/`text-end`/`data-suggestions`/`finish`/`[DONE]`); tool path emits `tool-input-*`/`tool-output-available` (calculator returns 4195 for (47×89)+12). Both gem playgrounds compute live in prod. Browser interaction + layout screenshot-checked locally before deploy. Pre-existing Grid::CellsControllerTest failures (3) predate this change.
+
 ## 2026-06-02 — LinguaGuessr "bad audio" report ingest
 - **What deployed:** demo.levelbrook.com, version `d593556`. New API-key-protected
   JSON endpoint that receives "report bad audio" flags from LinguaGuessr
