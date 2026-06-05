@@ -12,6 +12,17 @@ from the live container so the redeploy doesn't blank it — `docker exec <web> 
 
 ---
 
+## 2026-06-05 — Relay: fix invisible streaming + viewport-freeze the demo
+- **What deployed:** demo.levelbrook.com/relay, commit `acdbea9`. Same 8-app gallery; the Relay page is rebuilt and its streaming actually works visibly now.
+- **Changed:**
+  - **Visible streaming (the core fix):** Gemini batches output into ~3 large chunks, so token streaming was never visible. `MessagesController#emit_smoothly` now re-emits each chunk word-by-word (~18ms pause) — prod went from **3 `text-delta` frames to 435** for one answer.
+  - **Resilience under load:** `gemini-2.5-flash` intermittently 503s ("high demand"), which surfaced as a bare error / "nothing streamed". `GeminiService.stream_text` now retries transient 503/429 (`Overloaded`) and falls back to `gemini-2.0-flash`; retries fire only before any token is yielded so output can't duplicate.
+  - **2nd message dead:** `ai_stream_controller.js` used `this.emptyTarget?.remove()`, but Stimulus target getters *throw* when missing — so the 2nd send threw `Missing target "empty"` and left `streaming` stuck true, silently dropping all later sends. Guarded with `hasEmptyTarget`/`hasSuggestionsTarget`.
+  - **Design / "goes to top" / not viewport-frozen:** view rebuilt as a single screen pinned to `calc(100dvh - 3.5rem)` with `overflow:hidden`; only the transcript + wire inspector scroll internally. Removed the sprawling applications grid and the black-on-black "how it works" code block (its `text-[#e8e6df]` utility was never compiled into the build).
+  - **Richer prompts:** the 4 presets now elicit substantive multi-paragraph answers; system prompt targets 120–220 words so streaming is clearly visible.
+- **How:** `cd ~/Desktop/levelbrook-hotwire-demo && export KAMAL_REGISTRY_PASSWORD=localpw123 && bin/kamal deploy` (BALLOT_GEMINI_API_KEY already wired through Kamal).
+- **Verified:** Prod page HTTP 200; live Gemini SSE stream emits **435 `text-delta` frames** for one answer (was 3). Headless-Chromium against **prod**: `document` scroll == 0 (viewport frozen), zero console/page errors, first + second messages both stream (the previously-broken path), wire inspector populates, captured mid-stream at `text-delta ×236`. Same checks passed locally before deploy.
+
 ## 2026-06-05 — Relay (ai_stream + Gemini) & Forge (picoglob/fzy_score) showcase apps
 - **What deployed:** demo.levelbrook.com, gallery grown from 6 to **8 apps**. New: **Relay** (`/relay`) — a live LLM chat streaming Google Gemini token-by-token to the browser as Vercel-AI-SDK data-stream-protocol frames, encoded by the vendored `ai_stream` gem over ActionController::Live SSE, with a live wire inspector + calculator tool-call demo + streamed `data-*` suggestions. **Forge** (`/forge/picoglob`, `/forge/fzy`) — interactive server-computed playgrounds dogfooding `picoglob` (glob→Regexp) and `fzy_score` (fuzzy ranking w/ matched-position highlight).
 - **Changed:** Vendored ai_stream/picoglob/fzy_score as path gems under `vendor/gems/`; added `GeminiService.stream_text` (SSE token stream) + a safe `calculate` tool; registered both apps in `Showcase::APPS` + sidebar + namespace→shell mapping; refreshed gallery masthead. No new models/migrations (stateless — persistent SQLite volume untouched). **Dockerfile fix:** `COPY vendor/* ./vendor/` → `COPY vendor/ ./vendor/` (the wildcard flattened `vendor/gems/`, dropping the path gems at build).
