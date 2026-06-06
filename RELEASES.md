@@ -12,6 +12,16 @@ from the live container so the redeploy doesn't blank it — `docker exec <web> 
 
 ---
 
+## 2026-06-05 — Collapse 8 apps → 3 (subtraction pass for hirability)
+- **What deployed:** demo.levelbrook.com, commit `37e5f67`. The gallery now offers **three** apps, not eight.
+- **Changed:**
+  - **Removed Cadence, Pulse, Ballot, Grid, Spindle entirely** — routes, controllers, models, views, jobs, ActionCable presence/typing channels, their Stimulus controllers, and tests. Kept **Workspace** (Kanban), **Relay** (live `ai_stream`/Gemini streaming), **Forge** (picoglob/fzy_score benches). Driven by a professionalism audit: a senior buyer weights the weakest visible artifact, so three things done well beats eight shallow ones (the broken Pulse `100%` metric + the jokey chat were the biggest tells).
+  - **Removed staged tells:** fabricated-employee seed names (Ada Okafor et al.) → neutral role labels; deleted the jokey chat seed lines ("sue me", "hey bros") along with the chat app that hosted them.
+  - **Reframed the gallery copy:** "A Rails 8 product workbench — server-rendered Rails with targeted JavaScript" (was "eight production-shaped interfaces … not a single-page framework in sight").
+  - **Docs:** rewrote README around the 3 apps with a "What to inspect" guide + honest "Known limits"; deleted the stale six-app `blog/` write-ups and the self-authored `CODE-REVIEW.md`; trimmed the Playwright suite + e2e seed to the surviving apps.
+- **How:** `git push` then `export KAMAL_REGISTRY_PASSWORD=localpw123 && bin/kamal deploy`, then reseeded the box (`kamal app exec` — cleared old members/boards + orphan `messages` rows, ran `Seeds.seed_all!`).
+- **Verified:** 85 Ruby tests pass; app eager-loads `[:workspace, :relay, :forge]`. Live: `/`, `/workspace`, `/relay` → 200; `/forge` → 302→picoglob; `/channels` `/pulse` `/ballot` `/grid` `/spindle` → **404**. Gallery shows only the 3 apps, no "sue me"; box members are role labels. (Note: removed apps' DB tables remain in `schema.rb` — empty/unqueried — left in place to avoid a migration on the persistent volume.)
+
 ## 2026-06-05 — Relay: fix invisible streaming + viewport-freeze the demo
 - **What deployed:** demo.levelbrook.com/relay, commit `acdbea9`. Same 8-app gallery; the Relay page is rebuilt and its streaming actually works visibly now.
 - **Changed:**
