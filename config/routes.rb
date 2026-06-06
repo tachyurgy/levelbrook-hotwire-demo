@@ -37,50 +37,6 @@ Rails.application.routes.draw do
     post :validate, on: :collection
   end
 
-  # ============================ Cadence (chat) ============================
-  resources :channels, only: [ :index, :show ], param: :slug do
-    resources :messages, only: [ :create ] do
-      resource :reaction, only: [ :create ], controller: "reactions"
-    end
-  end
-
-  # ============================ Ballot (polls/Q&A) ========================
-  namespace :ballot do
-    root "rooms#index"
-    resources :rooms, only: [ :index, :show ], param: :slug do
-      member { post :reset }
-      resources :polls, only: [ :create ] do
-        resources :votes, only: [ :create ]
-      end
-      resources :questions, only: [ :create ] do
-        resource :upvote, only: [ :create ], controller: "upvotes"
-      end
-    end
-  end
-
-  # ============================ Pulse (ops dashboard) =====================
-  namespace :pulse do
-    root "dashboard#index"
-    post "incidents/trigger", to: "incidents#trigger", as: :trigger_incident
-    resources :deploys, only: [ :create ]
-    resources :incidents, only: [ :update ]
-  end
-
-  # ============================ Grid (spreadsheet) ========================
-  namespace :grid do
-    root "sheets#index"
-    resources :sheets, only: [ :index, :show ], param: :slug do
-      member { post :reset }
-    end
-    resources :cells, only: [ :update ]
-  end
-
-  # ============================ Spindle (media) ===========================
-  namespace :spindle do
-    root "albums#index"
-    resources :albums, only: [ :index, :show ], param: :slug
-  end
-
   # ============================ Relay (AI streaming) =====================
   # The ai_stream flagship: a live LLM chat that streams Google Gemini tokens
   # to the browser as Vercel-AI-SDK data-stream-protocol frames, encoded by the

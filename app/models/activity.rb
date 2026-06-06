@@ -1,12 +1,12 @@
 # A synthetic, read-only activity feed assembled from real workspace records
-# (issues created/updated, comments, messages). No table — it exists to power
-# the infinite-scroll / lazy-frame demo over genuine data.
+# (issues created/updated, comments). No table — it exists to power the
+# infinite-scroll / lazy-frame demo over genuine data.
 class Activity
   Item = Struct.new(:icon, :actor, :verb, :subject, :context, :at, keyword_init: true)
 
   class << self
     # Rebuilt on every call so the feed always reflects the latest records — a
-    # new chat message, comment, or moved issue shows up immediately. The source
+    # new comment or moved issue shows up immediately. The source
     # tables are tiny, so the handful of queries is cheap. (Previously this was
     # memoized at class level, which meant a long-running process served a stale
     # feed until a manual reset; for a real high-traffic feed you'd cache this
@@ -45,14 +45,6 @@ class Activity
           icon: "comment", actor: comment.member&.name || "Someone",
           verb: "commented on", subject: comment.issue.key,
           context: comment.body.truncate(60), at: comment.created_at
-        )
-      end
-
-      Message.includes(:member, :channel).order(created_at: :desc).limit(60).each do |message|
-        items << Item.new(
-          icon: "chat", actor: message.member&.name || "Someone",
-          verb: "posted in", subject: "##{message.channel.name}",
-          context: message.body.truncate(60), at: message.created_at
         )
       end
 

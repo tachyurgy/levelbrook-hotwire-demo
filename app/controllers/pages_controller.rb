@@ -3,7 +3,6 @@ class PagesController < ApplicationController
     @projects = Project.includes(columns: { issues: :assignee }).order(:id)
     @primary  = @projects.first
     @members  = Member.order(:id)
-    @channels = Channel.order(:id)
 
     issues = Issue.all
     @issue_count     = issues.count

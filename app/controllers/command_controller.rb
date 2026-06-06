@@ -17,7 +17,6 @@ class CommandController < ApplicationController
   def build_commands
     nav = [
       { title: "Go to Boards",        subtitle: "Kanban", kind: "Nav", url: projects_path },
-      { title: "Go to Chat",          subtitle: "Channels", kind: "Nav", url: channels_path },
       { title: "Go to Search",        subtitle: "Find issues", kind: "Nav", url: search_path },
       { title: "Go to Activity",      subtitle: "Feed", kind: "Nav", url: activities_path },
       { title: "Go to Sign-up form",  subtitle: "Live validation", kind: "Nav", url: new_signup_path }
@@ -27,14 +26,10 @@ class CommandController < ApplicationController
       { title: p.name, subtitle: "#{p.key} board", kind: "Project", url: project_path(p) }
     end
 
-    channels = Channel.all.map do |c|
-      { title: "##{c.name}", subtitle: "channel", kind: "Channel", url: channel_path(c) }
-    end
-
     issues = Issue.includes(column: :project).order(updated_at: :desc).limit(20).map do |i|
       { title: "#{i.key} #{i.title}", subtitle: i.column.name, kind: "Issue", url: issue_path(i) }
     end
 
-    nav + projects + channels + issues
+    nav + projects + issues
   end
 end

@@ -32,7 +32,7 @@
     <% if current_app %>
       <%# Themeable product shell. The accent override re-skins every %>
       <%# var(--color-accent) usage in this app's views — one CSS custom %>
-      <%# property, six products. %>
+      <%# property, every app. %>
       <div class="flex min-h-full"
            style="--color-accent: <%= current_app.accent %>; --color-accent-soft: <%= current_app.accent_soft %>;">
         <%= render "shared/app_sidebar", app: current_app %>
@@ -47,12 +47,6 @@
       <% if current_app.key == :workspace %>
         <%= render "shared/modal" %>
         <%= render "shared/command_palette" %>
-      <% end %>
-
-      <%# Spindle's persistent player: data-turbo-permanent, so it survives every %>
-      <%# Turbo navigation inside the app and keeps playing without re-mounting. %>
-      <% if current_app.key == :spindle %>
-        <%= render "spindle/player" %>
       <% end %>
     <% else %>
       <%# Gallery / standalone pages render chromeless. %>

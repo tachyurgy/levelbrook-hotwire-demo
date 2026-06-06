@@ -43,63 +43,6 @@
         </div>
       </div>
 
-    <% when :cadence %>
-      <%# Channel switching swaps only the conversation frame, so this rail never
-          re-renders. active-nav keeps the matching link flagged aria-current as
-          the URL changes, and warms each channel up front so clicks land fast. %>
-      <div data-controller="active-nav">
-        <p class="eyebrow mb-1.5 px-2">Channels</p>
-        <div class="space-y-0.5">
-          <% Channel.order(:id).each do |channel| %>
-            <%= link_to channel_path(channel),
-                  data: { turbo_frame: "conversation", turbo_action: "advance", active_nav_target: "link" },
-                  "aria-current": (defined?(@channel) && @channel == channel ? "page" : nil),
-                  class: "group flex items-center gap-2.5 rounded-md px-2.5 py-1.5 text-sm font-medium text-[var(--color-ink-soft)] transition hover:bg-[var(--color-cool-100)] hover:text-[var(--color-ink)] aria-[current=page]:bg-[var(--color-surface)] aria-[current=page]:text-[var(--color-ink)] aria-[current=page]:shadow-sm aria-[current=page]:ring-1 aria-[current=page]:ring-[var(--color-hairline)]" do %>
-              <span class="text-[var(--color-ink-faint)] group-aria-[current=page]:text-[var(--color-accent)]"><%= ws_icon "hash" %></span>
-              <span class="truncate"><%= channel.name %></span>
-            <% end %>
-          <% end %>
-        </div>
-      </div>
-
-    <% when :pulse %>
-      <div>
-        <p class="eyebrow mb-1.5 px-2">Operations</p>
-        <div class="space-y-0.5">
-          <%= shell_nav_link "Overview", pulse_root_path, icon: "gauge", active: true %>
-        </div>
-      </div>
-
-    <% when :ballot %>
-      <div>
-        <p class="eyebrow mb-1.5 px-2">Live rooms</p>
-        <div class="space-y-0.5">
-          <% Ballot::Room.order(:id).each do |room| %>
-            <%= shell_nav_link room.name, ballot_room_path(room), icon: "poll",
-                  active: defined?(@room) && @room == room %>
-          <% end %>
-        </div>
-      </div>
-
-    <% when :grid %>
-      <div>
-        <p class="eyebrow mb-1.5 px-2">Sheets</p>
-        <div class="space-y-0.5">
-          <% Grid::Sheet.order(:id).each do |sheet| %>
-            <%= shell_nav_link sheet.name, grid_sheet_path(sheet), icon: "grid",
-                  active: defined?(@sheet) && @sheet == sheet %>
-          <% end %>
-        </div>
-      </div>
-
-    <% when :spindle %>
-      <div>
-        <p class="eyebrow mb-1.5 px-2">Library</p>
-        <div class="space-y-0.5">
-          <%= shell_nav_link "All albums", spindle_root_path, icon: "music", active: nav_active?(:albums) %>
-        </div>
-      </div>
-
     <% when :relay %>
       <div>
         <p class="eyebrow mb-1.5 px-2">Demo</p>

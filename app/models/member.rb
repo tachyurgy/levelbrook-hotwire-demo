@@ -1,7 +1,6 @@
 class Member < ApplicationRecord
   has_many :assigned_issues, class_name: "Issue", foreign_key: :assignee_id, dependent: :nullify
   has_many :comments, dependent: :nullify
-  has_many :messages, dependent: :nullify
 
   validates :name, presence: true
 

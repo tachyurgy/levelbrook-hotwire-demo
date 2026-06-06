@@ -10,17 +10,16 @@ class ApplicationController < ActionController::Base
   before_action :assign_current_app
 
   # The themeable shell re-skins its chrome (accent + nav) per app. We infer the
-  # app from the controller path: namespaced controllers (ballot/, pulse/, …)
-  # resolve from their namespace; chat controllers map to cadence; the gallery
-  # stays chromeless; every other top-level controller is the workspace.
+  # app from the controller path: namespaced controllers (relay/, forge/) resolve
+  # from their namespace; the gallery stays chromeless; every other top-level
+  # controller is the workspace.
   def assign_current_app
     segment = controller_path.split("/").first
     key =
       case segment
-      when "ballot", "pulse", "grid", "spindle", "relay", "forge" then segment.to_sym
-      when "channels", "messages", "reactions"  then :cadence
-      when "gallery"                            then nil
-      else                                           :workspace
+      when "relay", "forge" then segment.to_sym
+      when "gallery"        then nil
+      else                       :workspace
       end
     @current_app = Showcase.find(key) if key
   end

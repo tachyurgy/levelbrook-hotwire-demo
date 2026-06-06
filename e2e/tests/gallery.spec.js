@@ -3,10 +3,10 @@ const { test, expect } = require("@playwright/test")
 // The portfolio front door: one card per Showcase app, each a Turbo link into
 // the running product.
 test.describe("Gallery", () => {
-  test("lists all six showcase apps and routes into one", async ({ page }) => {
+  test("lists the three showcase apps and routes into one", async ({ page }) => {
     await page.goto("/")
 
-    for (const name of ["Workspace", "Cadence", "Pulse", "Ballot", "Grid", "Spindle"]) {
+    for (const name of ["Workspace", "Relay", "Forge"]) {
       await expect(page.getByRole("heading", { name, exact: true })).toBeVisible()
     }
 

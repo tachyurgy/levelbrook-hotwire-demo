@@ -2,12 +2,11 @@ require "test_helper"
 
 class WorkspaceFlowTest < ActionDispatch::IntegrationTest
   setup do
-    @member = Member.create!(name: "Ada Okafor")
+    @member = Member.create!(name: "Eng Lead")
     @project = Project.create!(name: "Platform", key: "LB", slug: "platform")
     @todo = @project.columns.create!(name: "To Do", position: 0)
     @done = @project.columns.create!(name: "Done", position: 1)
     @issue = @todo.issues.create!(title: "Drag me", description: "desc", assignee: @member)
-    @channel = Channel.create!(name: "general", slug: "general", topic: "Hi")
   end
 
   test "root renders the gallery switcher listing every app" do
@@ -63,14 +62,6 @@ class WorkspaceFlowTest < ActionDispatch::IntegrationTest
     assert_response :success
   end
 
-  test "posting a chat message creates it" do
-    assert_difference -> { @channel.messages.count }, 1 do
-      post channel_messages_path(@channel), params: { message: { body: "Hello" } },
-           headers: { "Accept" => "text/vnd.turbo-stream.html" }
-    end
-    assert_response :success
-  end
-
   test "live search filters issues into a frame" do
     get search_path, params: { q: "Drag" }
     assert_response :success
@@ -82,9 +73,9 @@ class WorkspaceFlowTest < ActionDispatch::IntegrationTest
   end
 
   test "command palette returns server-rendered results" do
-    get command_path, params: { q: "general" }
+    get command_path, params: { q: "Platform" }
     assert_response :success
-    assert_match "#general", response.body
+    assert_match "LB board", response.body
   end
 
   test "signup validate streams field-level errors" do

@@ -3,13 +3,16 @@
 module Seeds
   module_function
 
+  # Role-based placeholders — not invented people. The board needs assignees and
+  # comment authors to look real; using roles keeps the demo honest (no
+  # fabricated colleagues) while still exercising avatars and attribution.
   MEMBERS = [
-    { name: "Ada Okafor",    role: "Staff Engineer",   color: "indigo" },
-    { name: "Bjorn Hayes",   role: "Product Designer", color: "violet" },
-    { name: "Priya Nandi",   role: "Backend Engineer", color: "emerald" },
-    { name: "Theo Marsh",    role: "Frontend Engineer", color: "amber" },
-    { name: "Lena Castro",   role: "Eng Manager",      color: "rose" },
-    { name: "Sam Whitfield", role: "QA Engineer",      color: "sky" }
+    { name: "Eng Lead",  role: "Engineering lead", color: "indigo" },
+    { name: "Design",    role: "Design",           color: "violet" },
+    { name: "Backend",   role: "Backend",          color: "emerald" },
+    { name: "Frontend",  role: "Frontend",         color: "amber" },
+    { name: "Eng Mgr",   role: "Engineering mgr",  color: "rose" },
+    { name: "QA",        role: "Quality",          color: "sky" }
   ].freeze
 
   COLUMNS = [
@@ -29,7 +32,6 @@ module Seeds
 
   def seed_all!
     members = ensure_members
-    ensure_channels(members)
     seed_project!("Platform", "LB", "platform", members, board_a)
     seed_project!("Mobile App", "MOB", "mobile", members, board_b)
   end
@@ -71,42 +73,6 @@ module Seeds
   def ensure_members
     MEMBERS.map do |attrs|
       Member.find_or_create_by!(name: attrs[:name]) { |m| m.role = attrs[:role]; m.color = attrs[:color] }
-    end
-  end
-
-  def ensure_channels(members)
-    [
-      [ "general",      "Company-wide announcements and watercooler." ],
-      [ "engineering",  "Deploys, incidents, and architecture chatter." ],
-      [ "design",       "Mocks, critique, and design-system updates." ]
-    ].each do |name, topic|
-      ch = Channel.find_or_create_by!(slug: name) { |c| c.name = name; c.topic = topic }
-      if ch.messages.empty?
-        seed_messages(ch, members)
-      end
-    end
-  end
-
-  def seed_messages(channel, members)
-    scripts = {
-      "general" => [
-        [ 0, "Morning all — board grooming at 10, then we lock the sprint." ],
-        [ 4, "Reminder: the workspace demo goes out to the team today." ],
-        [ 1, "Coffee machine on 3 is fixed 🎉 (kept the emoji, sue me)." ]
-      ],
-      "engineering" => [
-        [ 2, "Shipping the morph-based board sync — drag in one tab updates everywhere." ],
-        [ 0, "Nice. Did we keep SortableJS off the morphed nodes so it doesn't fight?" ],
-        [ 2, "Yep, drag state is DOM-resident. Morph only touches moved cards." ],
-        [ 3, "Pulled the latest — the ⌘K palette is genuinely fast." ]
-      ],
-      "design" => [
-        [ 1, "New issue-card spec: key, label chip, priority icon, points, avatar." ],
-        [ 4, "Love it. Keep the one accent — no gradients." ]
-      ]
-    }
-    (scripts[channel.slug] || []).each do |member_index, body|
-      channel.messages.create!(member: members[member_index % members.size], body: body)
     end
   end
 

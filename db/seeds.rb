@@ -1,16 +1,9 @@
-# Seeds for the Levelbrook Hotwire Showcase. Idempotent: safe to re-run.
-Seeds.seed_all!   # workspace + cadence (members, projects, issues, channels)
-Ballot.seed!      # live polls & Q&A rooms
-Pulse.seed!       # ops dashboard services + incidents
-Spindle.seed!     # albums + tracks
-Grid.seed!        # spreadsheet sheets + rows
+# Seeds for the Levelbrook Hotwire demo. Idempotent: safe to re-run.
+# Only Workspace carries persistent data — Relay (AI streaming) and Forge (the
+# gem playgrounds) are stateless.
+Seeds.seed_all!   # workspace: members, projects, issues, comments
 
 puts "Members:  #{Member.count}"
 puts "Projects: #{Project.count} (#{Project.pluck(:key).join(', ')})"
 puts "Issues:   #{Issue.count}"
-puts "Channels: #{Channel.count}"
-puts "Messages: #{Message.count}"
-puts "Ballot:   #{Ballot::Room.count} rooms, #{Ballot::Poll.count} polls"
-puts "Pulse:    #{Pulse::Service.count} services, #{Pulse::Incident.count} incidents"
-puts "Spindle:  #{Spindle::Album.count} albums, #{Spindle::Track.count} tracks"
-puts "Grid:     #{Grid::Sheet.count} sheets, #{Grid::Row.count} rows"
+puts "Comments: #{Comment.count}"

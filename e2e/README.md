@@ -3,8 +3,7 @@
 Browser-level tests that drive a **real Chromium** against a **booted Rails
 server** to prove the Hotwire flows work end to end — the things model and
 controller tests can't see: Turbo Stream broadcasts arriving in a second tab,
-SortableJS drag persistence, ⌘K, debounced frames, optimistic UI reconciled by
-a morph, and the `data-turbo-permanent` player surviving navigation.
+SortableJS drag persistence, ⌘K, debounced frames, and per-field live validation.
 
 This suite is intentionally isolated from the Ruby app: it has its own
 `package.json` and `node_modules` and touches nothing in `app/`.
@@ -21,8 +20,8 @@ npm test                          # boots the Rails server + runs all specs
 Playwright's `webServer` boots the app for you (see `playwright.config.js`): it
 runs `db:prepare`, reseeds a **deterministic** demo state via
 `e2e/reset_seed.rb`, builds Tailwind, then starts Puma on port **3001** with
-`SOLID_QUEUE_IN_PUMA=1` so background jobs (Pulse deploys) run in-process and
-Solid Cable carries the Action Cable / Turbo Stream broadcasts — no Redis.
+`SOLID_QUEUE_IN_PUMA=1` so background jobs run in-process and Solid Cable carries
+the Action Cable / Turbo Stream broadcasts — no Redis.
 
 Useful variants:
 
@@ -43,11 +42,7 @@ npm run report             # open the last HTML report
 | `command-palette.spec.js` | ⌘K, server-rendered results frame, keyboard select |
 | `search.spec.js` | Debounced Turbo Frame + URL advance |
 | `signup-validation.spec.js` | Per-field live validation (server-rendered errors) |
-| `cadence-chat.spec.js` | `broadcast_append_to` — incl. **cross-tab** live delivery |
-| `ballot-poll.spec.js` | Optimistic UI + server-persisted vote |
 | `kanban-drag.spec.js` | The drop-handler contract → reorder → `broadcasts_refreshes` morph (+ cross-tab)¹ |
-| `spindle-player.spec.js` | `data-turbo-permanent` element surviving navigation |
-| `pulse-dashboard.spec.js` | Active Job → Turbo Stream streamed progress (no polling) |
 
 > ¹ SortableJS uses native HTML5 drag-and-drop, which headless Chromium will not
 > start from synthetic input (so the lib's `onEnd` never fires). The spec therefore

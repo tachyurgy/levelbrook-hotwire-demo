@@ -16,15 +16,15 @@
         <%= @primary&.name || "Workspace" %> overview
       </h1>
       <p class="mt-1.5 text-sm text-[var(--color-ink-soft)]">
-        <%= pluralize(@members.size, "engineer") %> · <%= pluralize(@projects.size, "project") %> ·
-        <%= pluralize(@channels.size, "channel") %> — everything below is live, server-rendered data.
+        <%= pluralize(@members.size, "engineer") %> · <%= pluralize(@projects.size, "project") %> —
+        everything below is live, server-rendered data.
       </p>
     </div>
     <div class="flex flex-wrap gap-2">
       <% if @primary %>
         <%= link_to "Open board", project_path(@primary), class: "btn btn-accent", data: { turbo_action: "advance" } %>
       <% end %>
-      <%= link_to "Team room", channels_path, class: "btn btn-ghost", data: { turbo_action: "advance" } %>
+      <%= link_to "Activity", activities_path, class: "btn btn-ghost", data: { turbo_action: "advance" } %>
     </div>
   </div>
 
@@ -142,7 +142,6 @@
       <% proofs = [
            ["Kanban board", @primary ? project_path(@primary) : projects_path, "SortableJS → PUT → broadcasts_refreshes → Turbo morph; no custom broadcast code."],
            ["Issue drawer", @primary ? project_path(@primary) : projects_path, "Lazy Turbo Frame; /issues/:id still works as a full page. Frame-scoped inline edit."],
-           ["Team room", channels_path, "broadcast_append_to for messages; raw Action Cable for presence + typing."],
            ["Live search", search_path, "A normal form enhanced with a debounced submit; URL/history preserved."],
            ["Activity feed", activities_path, "Lazy Turbo Frames paginate real records — infinite scroll, almost no JS."],
            ["Intake form", new_signup_path, "Server-authoritative validation streamed per field; works with JS off."]

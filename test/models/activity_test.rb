@@ -7,22 +7,19 @@ class ActivityTest < ActiveSupport::TestCase
     Activity.reset!
     project = Project.create!(name: "Platform", key: "LB", slug: "platform")
     @col = project.columns.create!(name: "To Do", position: 0)
-    @channel = Channel.create!(name: "general", slug: "general")
   end
 
   teardown { Activity.reset! }
 
-  test "aggregates issues, comments and messages into one feed" do
+  test "aggregates issues and comments into one feed" do
     issue = @col.issues.create!(title: "Ship it")
     issue.comments.create!(body: "looks good")
-    @channel.messages.create!(body: "hello team")
     Activity.reset!
 
     icons = Activity.all.map(&:icon)
     assert_includes icons, "issue"
     assert_includes icons, "comment"
-    assert_includes icons, "chat"
-    assert_equal 3, Activity.total
+    assert_equal 2, Activity.total
   end
 
   test "feed is sorted newest first" do
@@ -51,12 +48,9 @@ class ActivityTest < ActiveSupport::TestCase
     assert_equal 1, Activity.total
 
     # Regression: the feed used to be memoized at class level, so a long-running
-    # process served a stale feed (new messages/comments/moves never appeared)
-    # until Activity.reset! was called. It is now rebuilt on every read.
+    # process served a stale feed (new comments/moves never appeared) until
+    # Activity.reset! was called. It is now rebuilt on every read.
     @col.issues.create!(title: "two")
     assert_equal 2, Activity.total, "feed must rebuild on read, not serve a stale cache"
-
-    @channel.messages.create!(body: "and a chat message")
-    assert_equal 3, Activity.total
   end
 end
