@@ -9,7 +9,7 @@ image: levelbrook_hotwire_demo
 # Puma) + Solid Cable + Solid Cache + SQLite — no external services.
 servers:
   web:
-    - 5.78.108.109
+    - 5.78.227.227
   # job:
   #   hosts:
   #     - 5.78.108.109
@@ -87,7 +87,7 @@ asset_path: /rails/public/assets
 # context, because there is no working local Docker daemon on this Mac.
 builder:
   arch: amd64
-  remote: ssh://root@5.78.108.109
+  remote: ssh://root@5.78.227.227
   local: false
 
   # # Build image via remote server (useful for faster amd64 builds on arm64 computers)
