@@ -20,8 +20,8 @@ module Showcase
       key: :relay, name: "Relay",
       tagline: "Stream a live LLM into Rails over the AI SDK protocol",
       domain: "AI engineering", accent: "#e11d48", accent_soft: "#fde4e9", glyph: "R",
-      primitives: [ "ActionController::Live SSE", "ai_stream protocol encoder", "Gemini token stream", "live tool-call parts" ],
-      repos: %w[ai_stream]
+      primitives: [ "ActionController::Live SSE", "AI SDK protocol frames", "Gemini token stream", "live tool-call parts" ],
+      repos: %w[levelbrook-hotwire-demo]
     ),
     App.new(
       key: :forge, name: "Forge",

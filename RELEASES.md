@@ -12,6 +12,12 @@ from the live container so the redeploy doesn't blank it — `docker exec <web> 
 
 ---
 
+## 2026-10-01 — Relay copy no longer names or links the ai_stream gem
+- **What deployed:** demo.levelbrook.com (Box B container `levelbrook_hotwire_demo-web-77b7a89…`), `/relay` and the gallery.
+- **Changed:** Relay header eyebrow, wire-inspector footer, the sidebar "Powered by ai_stream" link, the gallery primitive label and the preset prompt no longer mention ai_stream or link github.com/tachyurgy/ai_stream (that repo is now private). README prose de-gemmed the same way. The encoder code itself is unchanged (still vendored). Reason: owner instruction to never feature ai_stream (a hiring manager judged the one-commit repo as thin).
+- **How:** hot-patched, not rebuilt — Box B had 218MB available, too little for a remote image build. `docker cp` of the four changed files into the running container, then `docker restart`. The changes are committed, so the next `bin/kamal deploy` bakes them into the image.
+- **Verified:** `/up` 200; `/` and `/relay` 200 with no visible ai_stream text (only the internal Stimulus asset filename `ai_stream_controller-*.js` remains in the importmap).
+
 ## 2026-06-05 — Collapse 8 apps → 3 (subtraction pass for hirability)
 - **What deployed:** demo.levelbrook.com, commit `37e5f67`. The gallery now offers **three** apps, not eight.
 - **Changed:**

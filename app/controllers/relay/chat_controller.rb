@@ -10,7 +10,7 @@ class Relay::ChatController < ApplicationController
     { label: "Agentic tool call (math)", mode: "tool",
       prompt: "What is (47 * 89) + 12? Use the calculator tool, then explain the result." },
     { label: "Streaming architecture in Rails", mode: "text",
-      prompt: "Explain in depth how a Rails app streams a live LLM response end-to-end: ActionController::Live writing to response.stream, the ai_stream encoder turning tokens into Vercel AI SDK protocol frames, Server-Sent Events as the transport, and the browser reader parsing each frame. Note the operational gotchas — proxy buffering, threaded servers, and connection limits. Several short paragraphs." },
+      prompt: "Explain in depth how a Rails app streams a live LLM response end-to-end: ActionController::Live writing to response.stream, a Ruby encoder turning tokens into Vercel AI SDK protocol frames, Server-Sent Events as the transport, and the browser reader parsing each frame. Note the operational gotchas — proxy buffering, threaded servers, and connection limits. Several short paragraphs." },
     { label: "Why stream AI from Rails, not Node", mode: "text",
       prompt: "Make the engineering case for streaming AI responses from a Rails backend instead of standing up a separate Node service. Compare operational surface area, keeping business logic and auth in one place, the cost of a second deployment, and where a dedicated Node service would actually be the better call. Give me 4-5 substantive bullet points with a sentence of reasoning each." }
   ].freeze

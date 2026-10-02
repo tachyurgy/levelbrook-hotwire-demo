@@ -11,7 +11,7 @@
   <%# --- Compact header ------------------------------------------------- %>
   <header class="flex shrink-0 flex-wrap items-center justify-between gap-x-4 gap-y-2 pb-3">
     <div class="min-w-0">
-      <p class="eyebrow">ActionController::Live · ai_stream · Google Gemini</p>
+      <p class="eyebrow">ActionController::Live · SSE · Google Gemini</p>
       <h1 class="font-display text-xl font-extrabold leading-tight tracking-tight sm:text-2xl">
         A live LLM, streamed into Rails over the <span class="text-[var(--color-accent)]">AI SDK protocol</span>
       </h1>
@@ -77,8 +77,7 @@
 
       <footer class="shrink-0 border-t hairline px-3 py-2 text-[11px] leading-relaxed text-[var(--color-ink-soft)]">
         Each row is one Server-Sent-Events frame — the exact JSON the AI SDK's
-        <code class="font-mono text-[var(--color-ink)]">useChat()</code> consumes, encoded by
-        <a href="https://github.com/tachyurgy/ai_stream" rel="noopener" class="font-medium text-[var(--color-accent)] hover:underline">ai_stream</a>.
+        <code class="font-mono text-[var(--color-ink)]">useChat()</code> consumes, encoded server-side in Ruby.
         <a href="https://github.com/tachyurgy/levelbrook-hotwire-demo/tree/main/app/controllers/relay" rel="noopener" class="font-medium text-[var(--color-accent)] hover:underline">View the controller&nbsp;↗</a>
       </footer>
     </section>

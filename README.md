@@ -22,7 +22,7 @@ re-skins the chrome per app from a single CSS custom property.
 | Route | App | What it proves |
 |---|---|---|
 | `/workspace`, `/projects/:slug` | **Workspace** | A Jira-grade Kanban: SortableJS drag → `broadcasts_refreshes` **morph** synced across tabs; a lazy Turbo-Frame issue drawer with frame-scoped inline edit; ⌘K command palette; debounced live search; infinite-scroll activity feed; per-field live form validation. |
-| `/relay` | **Relay** | A live LLM chat that streams Google Gemini tokens to the browser as **Vercel AI SDK data-stream-protocol** frames, encoded over `ActionController::Live` SSE by the vendored [`ai_stream`](https://github.com/tachyurgy/ai_stream) gem — including streamed tool-call parts. |
+| `/relay` | **Relay** | A live LLM chat that streams Google Gemini tokens to the browser as **Vercel AI SDK data-stream-protocol** frames, encoded over `ActionController::Live` SSE by a small vendored Ruby encoder — including streamed tool-call parts. |
 | `/forge` | **Forge** | Interactive benches for two open-source gems: [`picoglob`](https://github.com/tachyurgy/picoglob) (bash glob → Ruby `Regexp`) and [`fzy_score`](https://github.com/tachyurgy/fzy_score) (fuzzy ranking with matched positions). Each "run" is real server-side computation by the gem, so the page is itself proof the library works. |
 
 ## What to inspect
@@ -31,7 +31,7 @@ If you're reviewing this for engineering judgment, these are the things worth a 
 
 - **`/workspace` → open a board, drag a card** — the move PUTs the new column+position to a thin endpoint (`issues/positions`), which broadcasts a single `broadcasts_refreshes` morph. Open the board in two tabs and watch it sync. SortableJS state is DOM-resident so the morph doesn't fight the drag.
 - **`/workspace` → click a card** — the issue drawer is a lazy Turbo Frame; `/issues/:id` still works as a full page. Inline edits swap a single field's frame, not the page.
-- **`/relay` → send a prompt** — watch the tokens arrive over SSE. The wire format is the Vercel AI SDK protocol; `vendor/gems/ai_stream` is the encoder. Try the "tool call" preset to see streamed tool-input/output parts.
+- **`/relay` → send a prompt** — watch the tokens arrive over SSE. The wire format is the Vercel AI SDK protocol, encoded in Ruby. Try the "tool call" preset to see streamed tool-input/output parts.
 - **`/forge/picoglob`** — type a glob; the result panel is a debounced Turbo Frame whose `src` carries the live inputs. The match logic is the real gem, not a reimplementation.
 - **`app/lib/showcase.rb`** — the app registry. One row per app; the themeable shell reads it. Adding an app is one row plus its controllers/views.
 
@@ -40,7 +40,7 @@ If you're reviewing this for engineering judgment, these are the things worth a 
 - **Why importmap (no Node/bundler):** the JavaScript is a handful of small Stimulus controllers. A build step would be pure overhead. Pinned ESM from the importmap keeps the asset pipeline a single concern.
 - **Why the Solid stack (Queue/Cable/Cache on SQLite):** no Redis, no Postgres accessory, no external services — the whole app is one process and one SQLite volume on one box. For a demo (and many real apps) that's the right amount of infrastructure.
 - **Where Turbo morphing is used:** board sync and the dashboard snapshot refresh via `broadcasts_refreshes` + `<meta name="turbo-refresh-method" content="morph">`. Morph preserves scroll/focus and the drag's DOM state.
-- **Where raw `ActionController::Live` is used:** Relay's SSE stream. Tokens are pulled from Gemini's `streamGenerateContent?alt=sse` endpoint and re-encoded as AI SDK frames by `ai_stream`, written to `response.stream`.
+- **Where raw `ActionController::Live` is used:** Relay's SSE stream. Tokens are pulled from Gemini's `streamGenerateContent?alt=sse` endpoint and re-encoded as AI SDK frames by the vendored encoder, written to `response.stream`.
 - **What the tests prove:** the Ruby suite covers models, controllers, and the full Workspace flow; the Playwright suite drives real Chromium for the things unit tests can't (cross-tab broadcasts, debounced frames, ⌘K, per-field validation).
 
 ## Running locally
@@ -70,8 +70,8 @@ npm test                             # Playwright browser tests vs a booted serv
 app/models/         project, column, issue, comment, member, activity, signup
 app/controllers/    workspace (top-level) + relay/ and forge/ namespaces + api/v1 (lingua ingest)
 app/lib/showcase.rb the app registry — one row per app; the themeable shell reads it
-app/javascript/controllers/   Stimulus controllers (sortable, command_palette, inline_edit, ai_stream, …)
-vendor/gems/        ai_stream, picoglob, fzy_score (vendored path gems, dogfooded by Relay + Forge)
+app/javascript/controllers/   Stimulus controllers (sortable, command_palette, inline_edit, relay chat, …)
+vendor/gems/        vendored path gems used by Relay + Forge
 e2e/                Playwright suite (own package.json; touches nothing in app/)
 test/               minitest suite
 ```
